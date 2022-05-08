@@ -4,6 +4,7 @@
 #include <iostream>
 #include <math.h>
 #include <vector>
+#include <string>
 #include <unordered_map>
 
 namespace world
@@ -42,6 +43,11 @@ namespace world
     {
         strm << pair.first << "," << pair.second;
         return strm;
+    }
+
+    template <typename T, typename U>
+    std::string to_string(const std::pair<T, U> &pair) {
+        return std::to_string(pair.first) + "," + std::to_string(pair.second);
     }
 
     enum BiDirectionality
