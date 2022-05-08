@@ -10,6 +10,8 @@ if [[ -z "${TRANSPORTSIM_INSTALL_DIR}" ]]; then
     fi
 fi
 
+./dependencies.sh
+
 mkdir -p build
 cd build/
 cmake -DCMAKE_INSTALL_PREFIX="$TRANSPORTSIM_INSTALL_DIR" -DCMAKE_BUILD_TYPE=Debug ../
