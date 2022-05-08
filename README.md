@@ -5,7 +5,8 @@
 
 # Prerequisites
 
-sfml
+sfml (libsfml-dev)
+spdlog (libspdlog-dev)
 
 # Contributing
 

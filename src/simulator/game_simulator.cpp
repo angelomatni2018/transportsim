@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include "spdlog/spdlog.h"
 
 #include <iostream>
 #include <unistd.h>
@@ -68,12 +69,13 @@ void drawGrid(sf::RenderWindow& win){
 
 int main() {
     signal(SIGSEGV, handler);
+    spdlog::set_level(spdlog::level::debug);
 
     // Create the main window
     auto desktopMode = sf::VideoMode::getDesktopMode();
     int screenWidth = desktopMode.width/2;
     int screenHeight = desktopMode.height/2;
-    // std::cout << "Screen: " << screenWidth << " " << screenHeight << "\n";
+    spdlog::debug("Screen: {}x{}", screenWidth, screenHeight);
     sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "SFML window");
     auto aspectRatio = 1.0 * desktopMode.width / desktopMode.height;
     sf::View view(sf::Vector2f(GRID_CENTER, GRID_CENTER), sf::Vector2f(GRID_SIZE * aspectRatio, GRID_SIZE));
@@ -100,7 +102,7 @@ int main() {
                 screenWidth = event.size.width;
                 screenHeight = event.size.height;
                 aspectRatio = 1.0 * event.size.width / event.size.height;
-                // std::cout << "Resize: " << screenWidth << " " << screenHeight << " " << aspectRatio << "\n";
+                spdlog::debug("Resize: {}x{} (aspect ratio {:.3f})", screenWidth, screenHeight, aspectRatio);
                 sf::View view(sf::Vector2f(GRID_CENTER, GRID_CENTER), sf::Vector2f(GRID_SIZE * aspectRatio, GRID_SIZE));
                 window.setView(view);
             }
@@ -165,7 +167,7 @@ StateChange SimulationState::simulate(const FrameData &frameData, const sf::Rend
 
         Pathfinder pathfinder(this->network);
         auto pathLocs = pathfinder.solve(this->network, res->getLocation(), comm->getLocation());
-        // std::cout << "Path spawned: " << res->getLocation() << " " << comm->getLocation() << " length: " << pathLocs.size() << "\n";
+        spdlog::debug("Path spawned: res at {} to comm at {} (path length {})", to_string(res->getLocation()), to_string(comm->getLocation()), pathLocs.size());
         auto path = new Path();
         this->paths.emplace(path);
         const int FRAMES_PER_TILE = 10;
@@ -180,16 +182,15 @@ StateChange SimulationState::simulate(const FrameData &frameData, const sf::Rend
         }
         path->orderedPathEvents.push_back(nullptr);
     }
-    // if (visits.size() > 0) {
+    if (visits.size() > 0) {
         PathReconciler().reconcile(paths);
-    // }
+    }
 
     if (inputManager.isPress(sf::Keyboard::Q)) {
         auto comm = this->network.getElementAt(std::make_pair(10, 0));
         auto res = this->network.getElementAt(std::make_pair(-1, 0));
         Pathfinder pathfinder(this->network);
         auto pathLocs = pathfinder.solve(this->network, res->getLocation(), comm->getLocation());
-        // std::cout << "Path found: " << pathLocs.size() << "\n";
         auto path = new Path();
         this->paths.emplace(path);
         // const int FRAMES_PER_TILE = rand() % 10 + 10;
@@ -219,11 +220,8 @@ StateChange SimulationState::simulate(const FrameData &frameData, const sf::Rend
             (-GRID_CENTER + GRID_SIZE * mousePosFraction.x) * aspectRatio,
             -GRID_CENTER + (GRID_SIZE * mousePosFraction.y));
         auto squareLoc = vectorToLocation(sf::Vector2i(floor(mousePosCentered.x / SQUARE_RESIZE), floor(mousePosCentered.y / SQUARE_RESIZE)));
-        // std::cout << "LEFT CLICKED: " << squareLoc << "\n";
-        // std::cout << "LEFT CLICKED: " << vectorToLocation(mousePos) << " "
-        //     << mousePosFraction.x << "," << mousePosFraction.y << " "
-        //     << mousePosCentered.x << "," << mousePosCentered.y << " "
-        //     << "\n";
+        spdlog::debug("Mouse click: {} {} {} {}", to_string(squareLoc), to_string(vectorToLocation(mousePos)),
+            to_string(vectorToLocation(mousePosFraction)), to_string(vectorToLocation(mousePosCentered)));
 
         if (!this->network.hasElementAt(squareLoc)) {
             WorldElement *spawnElem = nullptr;
@@ -305,7 +303,6 @@ void RenderState::render(sf::RenderWindow &window, const FrameData &frameData, c
             continue;
         }
         auto nextEvent = path->orderedPathEvents[1];
-        // std::cout << nextEvent->timeAtPoint << " " << frameData.frameNumber << "\n";
         if (nextEvent->timeAtPoint > frameData.frameNumber) {
             drawCar(path->orderedPathEvents[0]);
         } else {

@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 project(TransportSim)
 
-add_compile_options(-std=c++20)
+add_compile_options(-std=c++2a)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 function(build_transportsim_lib src_dir_name)
     file(GLOB SRC_CPP_FILES src/${src_dir_name}/*.cpp)
     list(FILTER SRC_CPP_FILES EXCLUDE REGEX ".*_test.cpp$")
-    message(${SRC_CPP_FILES})
     add_library(transportsim_${src_dir_name} SHARED ${SRC_CPP_FILES})
     target_include_directories(transportsim_${src_dir_name} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
     install(TARGETS transportsim_${src_dir_name} LIBRARY DESTINATION lib)
