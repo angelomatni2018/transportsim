@@ -170,17 +170,17 @@ StateChange SimulationState::simulate(const FrameData &frameData, const sf::Rend
         spdlog::debug("Path spawned: res at {} to comm at {} (path length {})", to_string(res->getLocation()), to_string(comm->getLocation()), pathLocs.size());
         auto path = new Path();
         this->paths.emplace(path);
+        ++pathUniqueId;
         const int FRAMES_PER_TILE = 10;
         for (int i = 0; i < pathLocs.size(); ++i) {
             auto pathLoc = pathLocs[i];
-            auto pathEvent = new PathEvent(path);
-            pathEvent->location = pathLoc;
-            pathEvent->index = i;
-            pathEvent->timeAtPoint = frameData.frameNumber + FRAMES_PER_TILE * i;
-            pathEvent->direction = Direction::NO_DIR;
+            auto pathEvent = new PathEvent(path, i, pathLoc, Direction::NO_DIR, frameData.frameNumber + FRAMES_PER_TILE * i);
             path->orderedPathEvents.push_back(pathEvent);
         }
-        path->orderedPathEvents.push_back(nullptr);
+        auto uniqueLocInMiddleOfNowhere = std::make_pair(INT32_MIN + pathUniqueId, 0);
+        auto pathEventVanish = new PathEvent(path, pathLocs.size(), uniqueLocInMiddleOfNowhere, Direction::NO_DIR,
+            frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
+        path->orderedPathEvents.push_back(pathEventVanish);
     }
     if (visits.size() > 0) {
         PathReconciler().reconcile(paths);
@@ -193,18 +193,18 @@ StateChange SimulationState::simulate(const FrameData &frameData, const sf::Rend
         auto pathLocs = pathfinder.solve(this->network, res->getLocation(), comm->getLocation());
         auto path = new Path();
         this->paths.emplace(path);
+        ++pathUniqueId;
         // const int FRAMES_PER_TILE = rand() % 10 + 10;
         const int FRAMES_PER_TILE = 10 - 2 * this->paths.size();
         for (int i = 0; i < pathLocs.size(); ++i) {
             auto pathLoc = pathLocs[i];
-            auto pathEvent = new PathEvent(path);
-            pathEvent->location = pathLoc;
-            pathEvent->index = i;
-            pathEvent->timeAtPoint = frameData.frameNumber + FRAMES_PER_TILE * i;
-            pathEvent->direction = Direction::NO_DIR;
+            auto pathEvent = new PathEvent(path, i, pathLoc, Direction::NO_DIR, frameData.frameNumber + FRAMES_PER_TILE * i);
             path->orderedPathEvents.push_back(pathEvent);
         }
-        path->orderedPathEvents.push_back(nullptr);
+        auto uniqueLocInMiddleOfNowhere = std::make_pair(INT32_MIN + pathUniqueId, 0);
+        auto pathEventVanish = new PathEvent(path, pathLocs.size(), uniqueLocInMiddleOfNowhere, Direction::NO_DIR,
+            frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
+        path->orderedPathEvents.push_back(pathEventVanish);
         // TODO: Understand the short-comings of reconciliation
         PathReconciler().reconcile(paths);
     }
@@ -298,7 +298,7 @@ void RenderState::render(sf::RenderWindow &window, const FrameData &frameData, c
 
     std::unordered_set<Path *> toErase;
     for (auto path : *stateChange.paths) {
-        if (path->orderedPathEvents.size() <= 2) {
+        if (path->orderedPathEvents.size() <= 1) {
             toErase.emplace(path);
             continue;
         }

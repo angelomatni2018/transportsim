@@ -17,9 +17,6 @@
 namespace world
 {
 
-    // TODO: Figure out a better way of communicating when a path's element should disappear upon arrival to the last location
-    // Right now, that is done using a nullptr PathEvent, resulting in (pathEvent == nullptr) checks everywhere which is a mess
-
     class Path;
 
     struct PathEvent
@@ -30,7 +27,8 @@ namespace world
         Direction direction;
         double timeAtPoint;
 
-        PathEvent(Path *path) : path{path}, index{-1}, location{INT32_MAX, INT32_MAX}, direction{Direction::NO_DIR}, timeAtPoint{-1} {};
+        PathEvent(Path *path, int idx, Location loc, Direction dir, double timeAtPoint)
+            : path{path}, index{idx}, location{loc}, direction{dir}, timeAtPoint{timeAtPoint} {};
 
         LocDir locDir() { return std::make_pair(location, direction); };
         void delay(double amount) ;
@@ -48,7 +46,6 @@ namespace world
 
         void remove(int idx) {
             for (int i = idx + 1; i < orderedPathEvents.size(); ++i) {
-                if (orderedPathEvents[i] == nullptr) continue;
                 --(orderedPathEvents[i]->index);
             }
             orderedPathEvents.erase(orderedPathEvents.begin() + idx);
@@ -57,7 +54,7 @@ namespace world
 
     inline std::ostream& operator<<(std::ostream& os, const Path& path) {
         for (auto pathEvent : path.orderedPathEvents) {
-            if (pathEvent != nullptr) os << *pathEvent << "; ";
+            os << *pathEvent << "; ";
         }
         return os;
     }

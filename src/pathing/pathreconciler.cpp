@@ -4,7 +4,6 @@ using namespace world;
 
 void PathEvent::delay(double amount) {
     for (int i = index; i < path->orderedPathEvents.size(); ++i) {
-        if (path->orderedPathEvents[i] == nullptr) continue;
         path->orderedPathEvents[i]->timeAtPoint += amount;
     }
 }
@@ -38,8 +37,6 @@ bool PathReconciler::reconcile(std::unordered_set<Path *> paths) {
     std::priority_queue<PathEvent *, std::vector<PathEvent *>, decltype(eventCompare)> eventQueue(eventCompare);
     int remainingToReconcile = paths.size();
     for (Path *path : paths) {
-        if (path->orderedPathEvents[0] == nullptr) continue;
-
         auto locDir = path->orderedPathEvents[0]->locDir();
         if (locDirToCurrentEvent.find(locDir) != locDirToCurrentEvent.end()) {
             return false;
@@ -50,7 +47,7 @@ bool PathReconciler::reconcile(std::unordered_set<Path *> paths) {
         }
 
         locDirToCurrentEvent[locDir] = path->orderedPathEvents[0];
-        if (path->orderedPathEvents.size() > 1 && path->orderedPathEvents[1] != nullptr) {
+        if (path->orderedPathEvents.size() > 1) {
             eventQueue.push(path->orderedPathEvents[1]);
         } else {
             --remainingToReconcile;
@@ -64,7 +61,6 @@ bool PathReconciler::reconcile(std::unordered_set<Path *> paths) {
         auto pathEvent = eventQueue.top();
         eventQueue.pop();
 
-        // if (pathEvent == nullptr) { continue; }
         // std::cout << "Processing: " << *pathEvent << " " << pathEventToLastTimeBlocked[pathEvent] << "\n";
         // for (auto &[locDir, currentEvent] : locDirToCurrentEvent) {
         //     std::cout << locDir << " " << *currentEvent << "\t";
@@ -80,9 +76,7 @@ bool PathReconciler::reconcile(std::unordered_set<Path *> paths) {
 
             // Delay the event
             auto blockerNextEvent = blockingEvent->path->orderedPathEvents[blockingEvent->index + 1];
-            if (blockerNextEvent != nullptr) {
-                pathEvent->delay(blockerNextEvent->timeAtPoint - pathEvent->timeAtPoint);
-            }
+            pathEvent->delay(blockerNextEvent->timeAtPoint - pathEvent->timeAtPoint);
             ++eventsBlockedSinceLastProgressMade;
             pathEventToLastTimeBlocked[pathEvent] = index;
 
@@ -98,14 +92,8 @@ bool PathReconciler::reconcile(std::unordered_set<Path *> paths) {
 
         if (pathEvent->path->orderedPathEvents.size() > pathEvent->index + 1) {
             auto nextEvent = pathEvent->path->orderedPathEvents[pathEvent->index + 1];
-            if (nextEvent != nullptr) {
-                // std::cout << "Moving on: " << *pathEvent << "\n";
-                eventQueue.push(nextEvent);
-            } else {
-                // std::cout << "Vanishing on: " << *pathEvent << "\n";
-                locDirToCurrentEvent.erase(locDir);
-                --remainingToReconcile;
-            }
+            // std::cout << "Moving on: " << *pathEvent << "\n";
+            eventQueue.push(nextEvent);
         } else {
             // std::cout << "Ending on: " << *pathEvent << "\n";
             --remainingToReconcile;

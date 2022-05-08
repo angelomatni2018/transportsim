@@ -11,11 +11,7 @@ unsigned int PathReconciled() {
     auto path = new Path();
     const int FRAMES_PER_TILE = 1;
     for (int i = 0; i < 10; ++i) {
-        auto pathEvent = new PathEvent(path);
-        pathEvent->location = std::make_pair(i, 0);
-        pathEvent->index = i;
-        pathEvent->timeAtPoint = FRAMES_PER_TILE * i;
-        pathEvent->direction = Direction::NO_DIR;
+        auto pathEvent = new PathEvent(path, i, std::make_pair(i, 0), Direction::NO_DIR, FRAMES_PER_TILE * i);
         path->orderedPathEvents.push_back(pathEvent);
     }
     return PathReconciler::reconcile({path});
