@@ -1,0 +1,1 @@
+./setup.sh && ./install/bin/game_simulator
