@@ -1,18 +1,10 @@
 #include "simulator/sfml_helpers.h"
 
-bool isKeyHold(std::unordered_map<sf::Keyboard::Key, bool> &keyToggle, sf::Keyboard::Key key) {
-    if (sf::Keyboard::isKeyPressed(key)) {
-        if (!keyToggle[key]) {
-            keyToggle[key] = true;
-        }
-        return true;
-    } else {
-        keyToggle[key] = false;
-    }
-    return false;
+bool InputManager::IsHold(sf::Keyboard::Key key) {
+    return sf::Keyboard::isKeyPressed(key);
 }
 
-bool isKeyPress(std::unordered_map<sf::Keyboard::Key, bool> &keyToggle, sf::Keyboard::Key key) {
+bool InputManager::IsPress(sf::Keyboard::Key key) {
     if (sf::Keyboard::isKeyPressed(key)) {
         if (!keyToggle[key]) {
             keyToggle[key] = true;

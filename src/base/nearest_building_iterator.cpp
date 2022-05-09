@@ -11,18 +11,18 @@ NearestBuildingIterator::NearestBuildingIterator(const Network &network, const B
     radiusToCheck = 1;
 }
 
-const Building *NearestBuildingIterator::next() {
-    auto targetLoc = target->getLocation();
+const Building *NearestBuildingIterator::Next() {
+    auto targetLoc = target->PrimaryLocation();
     // Check all coordinates a manhattan distance of radius away from target
     for (; nearests.empty() && radiusToCheck <= maxRadiusToCheck; ++radiusToCheck) {
         // Check the leftmost and rightmost coordinates
-        checkToQueueBuilding(targetLoc + std::make_pair(-radiusToCheck, 0));
-        checkToQueueBuilding(targetLoc + std::make_pair(radiusToCheck, 0));
+        checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(-radiusToCheck, 0));
+        checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(radiusToCheck, 0));
         // Exclusive range i in (-radius, radius), j being such that abs(i + j) = radiusToCheck
         // i + j = radiusToCheck OR i + j = -radiusToCheck ==> j = +/-radiusToCheck - i
         for (int i = -radiusToCheck + 1; i < radiusToCheck; ++i) {
-            checkToQueueBuilding(targetLoc + std::make_pair(i, radiusToCheck - i));
-            checkToQueueBuilding(targetLoc + std::make_pair(i, -radiusToCheck - i));
+            checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(i, radiusToCheck - i));
+            checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(i, -radiusToCheck - i));
         }
     }
 
@@ -33,8 +33,8 @@ const Building *NearestBuildingIterator::next() {
 }
 
 void NearestBuildingIterator::checkToQueueBuilding(Location loc) {
-    if (network.hasElementAt(loc)) {
-        auto element = network.getElementAt(loc);
+    if (network.HasStructureAt(loc)) {
+        auto element = network.StructureAt(loc);
         if (auto building = dynamic_cast<const Building *>(element); building != nullptr) {
             nearests.push(building);
         }

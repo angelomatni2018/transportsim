@@ -1,37 +1,72 @@
 #include "base/world_elements.h"
+#include "spdlog/spdlog.h"
 
 using namespace world;
 
-WorldElement::WorldElement(Location loc) : location{loc} {};
-const Location &WorldElement::getLocation() const { return this->location; }
-std::string WorldElement::getType() const { return WorldElement::Type; }
+WorldElement::WorldElement(Location primaryLoc) : primaryLocation{primaryLoc} {}
+const Location &WorldElement::PrimaryLocation() const { return this->primaryLocation; }
 
-Building::Building(std::pair<int, int> size, Location loc)
-    : sizeX{size.first}, sizeY{size.second}, WorldElement{loc} {};
-int Building::getCurrentOccupancy() { return 0; }
-int Building::getOccupancyCapacity() { return 0; }
-std::string Building::getType() const { return Building::Type; }
+SquareWorldElement::SquareWorldElement(std::pair<int, int> size, Location loc)
+    : sizeX{size.first}, sizeY{size.second}, WorldElement{loc} {}
+
+const std::vector<Location> SquareWorldElement::AllOccupiedLocations() const {
+    std::vector<Location> locations;
+    for (int x = 0; x < sizeX; ++x) {
+        for (int y = 0; y < sizeY; ++y) {
+            locations.push_back(primaryLocation + std::make_pair(x, y));
+        }
+    }
+    return locations;
+}
+
+CoordOffsetWorldElement::CoordOffsetWorldElement(std::vector<Location> initialOffsets, Location primaryLoc)
+    : offsetsFromPrimaryLocation{initialOffsets}, WorldElement{primaryLoc} {}
+
+const std::vector<Location> CoordOffsetWorldElement::AllOccupiedLocations() const {
+    std::vector<Location> locations = {primaryLocation};
+    for (auto offset : offsetsFromPrimaryLocation) {
+        locations.push_back(primaryLocation + offset);
+    }
+    return locations;
+}
+
+Building::Building(std::pair<int, int> size, Location loc) : SquareWorldElement{size, loc} {
+    if (sizeX % STRUCTURE_BASE_SIZE_UNIT != 0 || sizeY % STRUCTURE_BASE_SIZE_UNIT != 0) {
+        spdlog::error("Structure (of type {}) with size {} is not a multiple of STRUCTURE_BASE_SIZE_UNIT={}",
+            this->GetType(), to_string(size), STRUCTURE_BASE_SIZE_UNIT);
+        abort();
+    }
+}
+
+int Building::CurrentOccupancy() { return 0; }
+
+int Building::OccupancyCapacity() { return 0; }
 
 CommercialBuilding::CommercialBuilding(int numOccupants, std::pair<int, int> size, Location loc)
     : numVisitors{numOccupants}, currentVisitors{0}, Building{size, loc} {}
-void CommercialBuilding::addOccupant() { currentVisitors++; }
-void CommercialBuilding::removeOccupant() { currentVisitors--; }
-int CommercialBuilding::getCurrentOccupancy() { return currentVisitors; }
-int CommercialBuilding::getOccupancyCapacity() { return numVisitors; }
-std::string CommercialBuilding::getType() const { return CommercialBuilding::Type; }
+
+void CommercialBuilding::AddOccupant() { currentVisitors++; }
+
+void CommercialBuilding::RemoveOccupant() { currentVisitors--; }
+
+int CommercialBuilding::CurrentOccupancy() { return currentVisitors; }
+
+int CommercialBuilding::OccupancyCapacity() { return numVisitors; }
 
 ResidentialBuilding::ResidentialBuilding(int numOccupants, std::pair<int, int> size, Location loc)
     : numResidents{numOccupants}, currentResidents{numOccupants}, Building{size, loc} {}
-void ResidentialBuilding::addOccupant() { currentResidents++; }
-void ResidentialBuilding::removeOccupant() { currentResidents--; };
-int ResidentialBuilding::getCurrentOccupancy() { return currentResidents; }
-int ResidentialBuilding::getOccupancyCapacity() { return numResidents; }
-std::string ResidentialBuilding::getType() const { return ResidentialBuilding::Type; }
 
-Roadway::Roadway(Location loc) : WorldElement{loc} {}
-std::string Roadway::getType() const { return Roadway::Type; }
+void ResidentialBuilding::AddOccupant() { currentResidents++; }
 
-bool RoadJunction::isValidDirectionality(BiDirectionality directionality)
-{
-    return (this->directionalities & directionality);
-}
+void ResidentialBuilding::RemoveOccupant() { currentResidents--; };
+
+int ResidentialBuilding::CurrentOccupancy() { return currentResidents; }
+
+int ResidentialBuilding::OccupancyCapacity() { return numResidents; }
+
+Roadway::Roadway(std::pair<int, int> size, Location loc) : SquareWorldElement{size, loc} {}
+
+RoadSegment::RoadSegment(Location loc) : Roadway{{STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT}, loc} {}
+
+Vehicle::Vehicle(ResidentialBuilding *home, std::vector<Location> initialOffsets, Location primaryLoc)
+    : home{home}, CoordOffsetWorldElement{initialOffsets, primaryLoc} {}

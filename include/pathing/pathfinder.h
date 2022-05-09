@@ -22,7 +22,7 @@ namespace world
     public:
         Pathfinder(const Network &network);
 
-        const std::vector<Location> &getShortestPath(const Location &from, const Location &to);
+        const std::vector<Location> &ShortestPath(const Location &from, const Location &to);
 
         virtual double heuristic(Location start, Location end);
 

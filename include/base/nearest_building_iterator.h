@@ -20,7 +20,7 @@ namespace world {
 
     public:
         NearestBuildingIterator(const Network &network, const Building *target);
-        const Building *next();
+        const Building *Next();
     };
 }
 

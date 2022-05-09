@@ -1,4 +1,6 @@
 #include "base/network.h"
+#include "spdlog/spdlog.h"
+
 #include <queue>
 #include <algorithm>
 
@@ -6,47 +8,55 @@ using namespace world;
 
 Network::Network() : buildings{}, spatialMap{} {};
 
-bool Network::hasElementAt(Location loc) const {
-    return spatialMap.find(loc) != spatialMap.end();
+bool Network::HasStructureAt(Location loc) const {
+    auto alignedLoc = std::make_pair(loc.first - loc.first % STRUCTURE_BASE_SIZE_UNIT, loc.second - loc.second % STRUCTURE_BASE_SIZE_UNIT);
+    return spatialMap.find(alignedLoc) != spatialMap.end();
 }
 
-const WorldElement *Network::getElementAt(Location loc) const {
-    return spatialMap.at(loc);
+const WorldElement *Network::StructureAt(Location loc) const {
+    auto alignedLoc = std::make_pair(loc.first - loc.first % STRUCTURE_BASE_SIZE_UNIT, loc.second - loc.second % STRUCTURE_BASE_SIZE_UNIT);
+    return spatialMap.at(alignedLoc);
 }
 
-const std::unordered_map<Location, WorldElement *, pair_hash> &Network::getSpatialMap() const {
+const std::unordered_map<Location, WorldElement *, pair_hash> &Network::SpatialMap() const {
     return this->spatialMap;
 }
 
 void Network::addToSpatialMap(WorldElement *element) {
-    this->spatialMap[element->location] = element;
-    // std::cout << "Adding to spatial map: " << element->location << " " << element->getType() << "\n";
-    this->expandBounds(element->location);
+    auto alignedLoc = element->PrimaryLocation();
+    if (alignedLoc.first % STRUCTURE_BASE_SIZE_UNIT != 0 || alignedLoc.second % STRUCTURE_BASE_SIZE_UNIT != 0) {
+        spdlog::error("Structure (of type {}) with primary location {} is not a multiple of STRUCTURE_BASE_SIZE_UNIT={}",
+            element->GetType(), to_string(alignedLoc), STRUCTURE_BASE_SIZE_UNIT);
+        abort();
+    }
+    this->spatialMap[alignedLoc] = element;
+    spdlog::trace("Network: spatial map entry at {} of type {}", to_string(element->PrimaryLocation()), element->GetType());
+    this->expandBounds(alignedLoc);
 }
 
-std::vector<Building *> const &Network::getBuildings() const {
+std::vector<Building *> const &Network::Buildings() const {
     return this->buildings;
 }
 
-std::vector<Roadway *> const &Network::getRoads() const {
+std::vector<Roadway *> const &Network::Roads() const {
     return this->roads;
 }
 
-void Network::addBuilding(Building *building) {
+void Network::AddBuilding(Building *building) {
     this->buildings.push_back(building);
-    if (this->spatialMap.find(building->location) != this->spatialMap.end())
+    if (this->spatialMap.find(building->PrimaryLocation()) != this->spatialMap.end())
     {
-        std::cout << "Cannot place two entities on the same location on the network\n";
+        spdlog::error("Cannot place two entities on the same location on the network\n");
         abort();
     }
     this->addToSpatialMap(building);
 }
 
-void Network::addRoadway(Roadway *roadway) {
+void Network::AddRoadway(Roadway *roadway) {
     this->roads.push_back(roadway);
-    if (this->spatialMap.find(roadway->location) != this->spatialMap.end())
+    if (this->spatialMap.find(roadway->PrimaryLocation()) != this->spatialMap.end())
     {
-        std::cout << "Cannot place two entities on the same location on the network\n";
+        spdlog::error("Cannot place two entities on the same location on the network\n");
         abort();
     }
     this->addToSpatialMap(roadway);

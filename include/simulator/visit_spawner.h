@@ -22,7 +22,7 @@ public:
 
     // TODO: Have the visit spawner choose which residential building to assign to a commercial building by the distance
     // along roads between the two buildings, not a manhattan distance between the two building's coordinates
-    std::vector<std::pair<CommercialBuilding *, ResidentialBuilding *>> spawn(const Network &network, double timeElapsed);
+    std::vector<std::pair<CommercialBuilding *, ResidentialBuilding *>> Spawn(const Network &network, double timeElapsed);
 
 };
 

@@ -1,13 +1,14 @@
 #include "pathing/pathfinder.h"
+#include "spdlog/spdlog.h"
 
 using namespace world;
 
 Pathfinder::Pathfinder(const Network &network) : shortestPathFromLocToLoc{}
 {
-    for (auto oneLocElementPair : network.getSpatialMap())
+    for (auto oneLocElementPair : network.SpatialMap())
     {
         auto from = oneLocElementPair.first;
-        for (auto otherLocElementPair : network.getSpatialMap())
+        for (auto otherLocElementPair : network.SpatialMap())
         {
             auto to = otherLocElementPair.first;
             auto path = solve(network, from, to);
@@ -17,16 +18,16 @@ Pathfinder::Pathfinder(const Network &network) : shortestPathFromLocToLoc{}
     }
 }
 
-const std::vector<Location> &Pathfinder::getShortestPath(const Location &from, const Location &to)
+const std::vector<Location> &Pathfinder::ShortestPath(const Location &from, const Location &to)
 {
     if (this->shortestPathFromLocToLoc.find(from) == this->shortestPathFromLocToLoc.end())
     {
-        std::cout << "No element at 'from' location\n";
+        spdlog::error("No element at 'from' location\n");
         abort();
     }
     if (this->shortestPathFromLocToLoc[from].find(to) == this->shortestPathFromLocToLoc[from].end())
     {
-        std::cout << "No element at 'to' location\n";
+        spdlog::error("No element at 'to' location\n");
         abort();
     }
     return shortestPathFromLocToLoc[from][to];
@@ -68,7 +69,8 @@ std::vector<Location> Pathfinder::neighbors(const Network &network, Location cur
         {
             if (!(i == 0 ^ j == 0))
                 continue;
-            Location p = current + Location(i, j);
+            // FIXME: This is absolutely incorrect for any other structure than a minimum sized one
+            Location p = current + STRUCTURE_BASE_SIZE_UNIT * Location(i, j);
             n.push_back(p);
         }
     }
@@ -94,12 +96,13 @@ std::vector<Location> Pathfinder::retrace(Location start, Location end, std::uno
 bool Pathfinder::isValidNeighborToTraverse(const Network &network, Location neighbor)
 {
     // If it is a roadway, check to add to the frontier
-    if (!network.hasElementAt(neighbor))
+    if (!network.HasStructureAt(neighbor))
         return false;
-    auto element = network.getElementAt(neighbor);
-    if (auto roadway = dynamic_cast<const Roadway *>(element); roadway == nullptr)
-        return false;
-    return true;
+    auto element = network.StructureAt(neighbor);
+    // TODO: This is intentionally restrictive to RoadSegment
+    // as the implementation of neighbors() does not support any larger structures
+    auto roadway = dynamic_cast<const RoadSegment *>(element); 
+    return roadway != nullptr;
 }
 
 std::vector<Location> Pathfinder::solve(const Network &network, Location start, Location end)

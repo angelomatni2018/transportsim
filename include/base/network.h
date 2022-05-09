@@ -16,6 +16,8 @@ namespace world {
     private:
         std::vector<Building *> buildings;
         std::vector<Roadway *> roads;
+
+        // Every location in this map is aligned to STRUCTURE_BASE_SIZE_UNIT (see world_elements.h)
         std::unordered_map<Location, WorldElement *, pair_hash> spatialMap;
 
         std::pair<Location, Location> bounds;
@@ -25,15 +27,15 @@ namespace world {
     public:
         Network();
 
-        const std::unordered_map<Location, WorldElement *, pair_hash> &getSpatialMap() const;
-        const std::vector<Building *> &getBuildings() const;
-        const std::vector<Roadway *> &getRoads() const;
+        const std::unordered_map<Location, WorldElement *, pair_hash> &SpatialMap() const;
+        const std::vector<Building *> &Buildings() const;
+        const std::vector<Roadway *> &Roads() const;
 
-        bool hasElementAt(Location loc) const;
-        const WorldElement *getElementAt(Location loc) const;
+        bool HasStructureAt(Location loc) const;
+        const WorldElement *StructureAt(Location loc) const;
 
-        void addBuilding(Building *building);
-        void addRoadway(Roadway *roadway);
+        void AddBuilding(Building *building);
+        void AddRoadway(Roadway *roadway);
 
         std::pair<Location, Location> Bounds() const { return bounds; }
     };

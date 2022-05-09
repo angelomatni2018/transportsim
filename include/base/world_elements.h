@@ -10,123 +10,142 @@
 
 namespace world {
 
+    // Every tile is subdivided into 16 unique locations (4x4) that vehicles can fall on.
+    // The alternative would have been to use decimals for vehicle positioning, which is unwarranted complexity
+    constexpr int STRUCTURE_BASE_SIZE_UNIT = 4;
+
     class Network;
 
-    class WorldElement
-    {
-    private:
-        Location location;
+    class WorldElement {
+    protected:
+        // The primary location is some arbitrary point from which the rest of the occupied coordinates
+        // of this world element are represented.
+        // Other coords are represented either as offsets or by a shape's dimensions
+        // This choice of representation is decided by each derived class and determines the implementation of getAllOccupiedLocations
+        Location primaryLocation;
 
     public:
-        WorldElement(Location loc);
-        const Location &getLocation() const;
+        WorldElement(Location primaryLoc);
 
-        inline const static std::string Type = "WorldElement";
-        virtual std::string getType() const;
+        const Location &PrimaryLocation() const;
+        virtual const std::vector<Location> AllOccupiedLocations() const = 0;
+
+        virtual std::string GetType() const = 0;
 
         friend class Network;
     };
 
-    class Building : public WorldElement
-    {
-    private:
+    class SquareWorldElement : public WorldElement {
+    protected:
         // Convention is that the location of the building is the bottom left
         // and the size indicates how many units to the right and above that the building covers
         int sizeX, sizeY;
 
     public:
-        Building(std::pair<int, int> size, Location loc);
+        SquareWorldElement(std::pair<int, int> size, Location primaryLoc);
 
-        virtual int getCurrentOccupancy();
-        virtual int getOccupancyCapacity();
+        const std::vector<Location> AllOccupiedLocations() const override;
+    };
 
-        virtual void addOccupant(){};
-        virtual void removeOccupant(){};
+    class CoordOffsetWorldElement : public WorldElement {
+    protected:
+        std::vector<Location> offsetsFromPrimaryLocation;
+
+    public:
+        CoordOffsetWorldElement(std::vector<Location> initialOffsets, Location primaryLoc);
+
+        const std::vector<Location> AllOccupiedLocations() const override;
+    };
+
+    class Building : public SquareWorldElement {
+    private:
+    public:
+        Building(std::pair<int, int> size, Location primaryLoc);
+
+        virtual int CurrentOccupancy();
+        virtual int OccupancyCapacity();
+
+        virtual void AddOccupant(){};
+        virtual void RemoveOccupant(){};
 
         inline const static std::string Type = "Building";
-        std::string getType() const override;
+        std::string GetType() const override { return Building::Type; }
 
         friend class Network;
     };
 
-    class CommercialBuilding : public Building
-    {
+    class CommercialBuilding : public Building {
     private:
         int numVisitors, currentVisitors;
 
     public:
         CommercialBuilding(int numOccupants, std::pair<int, int> size, Location loc);
 
-        int getCurrentOccupancy() override;
-        int getOccupancyCapacity() override;
+        int CurrentOccupancy() override;
+        int OccupancyCapacity() override;
 
-        void addOccupant() override;
-        void removeOccupant() override;
+        void AddOccupant() override;
+        void RemoveOccupant() override;
 
         inline const static std::string Type = "CommercialBuilding";
-        std::string getType() const override;
+        std::string GetType() const override { return CommercialBuilding::Type; }
 
         friend class Network;
     };
 
-    class ResidentialBuilding : public Building
-    {
+    class ResidentialBuilding : public Building {
     private:
         int numResidents, currentResidents;
 
     public:
         ResidentialBuilding(int numOccupants, std::pair<int, int> size, Location loc);
 
-        int getCurrentOccupancy() override;
-        int getOccupancyCapacity() override;
+        int CurrentOccupancy() override;
+        int OccupancyCapacity() override;
 
-        void addOccupant() override;
-        void removeOccupant() override;
+        void AddOccupant() override;
+        void RemoveOccupant() override;
 
         inline const static std::string Type = "ResidentialBuilding";
-        std::string getType() const override;
+        std::string GetType() const override { return ResidentialBuilding::Type; }
 
         friend class Network;
     };
 
-    class Roadway : public WorldElement
-    {
+    class Roadway : public SquareWorldElement {
     public:
-        Roadway(Location loc);
+        Roadway(std::pair<int, int> size, Location loc);
 
         inline const static std::string Type = "Roadway";
-        std::string getType() const override;
+        std::string GetType() const override { return Roadway::Type; }
 
         friend class Network;
     };
 
-    class RoadSegment : public Roadway
-    {
-    private:
-        u_int8_t singleDirectionality = BiDirectionality::NO_BIDIR;
+    // To be used for a roadway without traffic control
+    // Future derived classes of Roadway would potentially include:
+    // TrafficSignalIntersection and RoundaboutIntersection
+    class RoadSegment : public Roadway {
+    public:
+        RoadSegment(Location loc);
 
         inline const static std::string Type = "RoadSegment";
-        std::string getType() const override;
+        std::string GetType() const override { return RoadSegment::Type; }
 
-
-    public:
         friend class Network;
     };
 
-    class RoadJunction : public Roadway
-    {
+    class Vehicle : public CoordOffsetWorldElement {
     private:
-        u_int8_t directionalities = BiDirectionality::NO_BIDIR;
-
-        inline const static std::string Type = "RoadJunction";
-        std::string getType() const override;
-
+        ResidentialBuilding *home;
 
     public:
-        bool isValidDirectionality(BiDirectionality directionality);
+        Vehicle(ResidentialBuilding *home, std::vector<Location> initialOffsets, Location primaryLoc);
 
-        friend class Network;
+        inline const static std::string Type = "Vehicle";
+        std::string GetType() const override { return Vehicle::Type; }
     };
+
 }
 
 #endif

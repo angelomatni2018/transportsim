@@ -88,7 +88,7 @@ int main() {
     RenderState renderState;
     while (window.isOpen())
     {
-        if (inputManager.isPress(sf::Keyboard::Escape)) {
+        if (inputManager.IsPress(sf::Keyboard::Escape)) {
             window.close();
         }
 
@@ -108,30 +108,30 @@ int main() {
             }
         }
 
-        if (inputManager.isPress(sf::Keyboard::Up)) {
+        if (inputManager.IsPress(sf::Keyboard::Up)) {
             view.setSize(view.getSize() + sf::Vector2f(100 * aspectRatio, 100));
             window.setView(view);
         }
-        if (inputManager.isPress(sf::Keyboard::Down)) {
+        if (inputManager.IsPress(sf::Keyboard::Down)) {
             view.setSize(view.getSize() - sf::Vector2f(100 * aspectRatio, 100));
             window.setView(view);
         }
 
-        auto stateChange = simState.simulate(frameData, window, inputManager);
+        auto stateChange = simState.Simulate(frameData, window, inputManager);
 
         window.clear();
         // drawGrid(window);
-        renderState.render(window, frameData, stateChange);
+        renderState.Render(window, frameData, stateChange);
         window.display();
 
         // TODO: Adapt the sleep duration so that an iteration of this while loop is as close to the target length of a frame as possible 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        frameData.nextFrame();
+        frameData.NextFrame();
     }
     return 0;
 }
 
-void FrameData::nextFrame() {
+void FrameData::NextFrame() {
     auto nextLastFrame = std::chrono::system_clock::now();
     this->rollingDuration += nextLastFrame - lastFrame;
     this->lastFrame = nextLastFrame;
@@ -142,71 +142,63 @@ void FrameData::nextFrame() {
     }
 }
 
-StateChange SimulationState::simulate(const FrameData &frameData, const sf::RenderWindow &window, InputManager &inputManager) {
+StateChange SimulationState::Simulate(const FrameData &frameData, const sf::RenderWindow &window, InputManager &inputManager) {
     StateChange stateChange;
     stateChange.paths = &this->paths;
 
-    if (network.getRoads().size() == 0) {
-        auto leftBuilding = new ResidentialBuilding(1, std::make_pair(1, 1), std::make_pair(-1, 0));
-        auto rightBuilding = new CommercialBuilding(1, std::make_pair(1, 1), std::make_pair(10, 0));
-        this->network.addBuilding(leftBuilding);
-        this->network.addBuilding(rightBuilding);
+    if (network.Roads().size() == 0) {
+        auto leftBuilding = new ResidentialBuilding(1, STRUCTURE_BASE_SIZE_UNIT * std::make_pair(1, 1), STRUCTURE_BASE_SIZE_UNIT * std::make_pair(-1, 0));
+        auto rightBuilding = new CommercialBuilding(1, STRUCTURE_BASE_SIZE_UNIT * std::make_pair(1, 1), STRUCTURE_BASE_SIZE_UNIT * std::make_pair(10, 0));
+        this->network.AddBuilding(leftBuilding);
+        this->network.AddBuilding(rightBuilding);
         stateChange.elements.push_back(leftBuilding);
         stateChange.elements.push_back(rightBuilding);
         for (auto i = 0; i < 10; ++i) {
-            auto firstRoad = new Roadway(std::make_pair(i, 0));
-            this->network.addRoadway(firstRoad);
+            auto firstRoad = new RoadSegment(STRUCTURE_BASE_SIZE_UNIT * std::make_pair(i, 0));
+            this->network.AddRoadway(firstRoad);
             stateChange.elements.push_back(firstRoad);
         }
         return stateChange;
     }
 
-    auto visits = this->spawner.spawn(this->network, 1);
+    auto visits = this->spawner.Spawn(this->network, 1);
     for (auto visit : visits) {
         auto comm = visit.first; auto res = visit.second;
 
         Pathfinder pathfinder(this->network);
-        auto pathLocs = pathfinder.solve(this->network, res->getLocation(), comm->getLocation());
-        spdlog::debug("Path spawned: res at {} to comm at {} (path length {})", to_string(res->getLocation()), to_string(comm->getLocation()), pathLocs.size());
+        auto pathLocs = pathfinder.solve(this->network, res->PrimaryLocation(), comm->PrimaryLocation());
+        spdlog::debug("Path spawned: res at {} to comm at {} (path length {})", to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()), pathLocs.size());
         auto path = new Path();
         this->paths.emplace(path);
         ++pathUniqueId;
         const int FRAMES_PER_TILE = 10;
         for (int i = 0; i < pathLocs.size(); ++i) {
-            auto pathLoc = pathLocs[i];
-            auto pathEvent = new PathEvent(path, i, pathLoc, Direction::NO_DIR, frameData.frameNumber + FRAMES_PER_TILE * i);
-            path->orderedPathEvents.push_back(pathEvent);
+            path->Append({pathLocs[i]}, frameData.frameNumber + FRAMES_PER_TILE * i);
         }
         auto uniqueLocInMiddleOfNowhere = std::make_pair(INT32_MIN + pathUniqueId, 0);
-        auto pathEventVanish = new PathEvent(path, pathLocs.size(), uniqueLocInMiddleOfNowhere, Direction::NO_DIR,
-            frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
-        path->orderedPathEvents.push_back(pathEventVanish);
+        path->Append({uniqueLocInMiddleOfNowhere}, frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
     }
     if (visits.size() > 0) {
-        PathReconciler().reconcile(paths);
+        PathReconciler().Reconcile(paths);
     }
 
-    if (inputManager.isPress(sf::Keyboard::Q)) {
-        auto comm = this->network.getElementAt(std::make_pair(10, 0));
-        auto res = this->network.getElementAt(std::make_pair(-1, 0));
+    if (inputManager.IsPress(sf::Keyboard::Q)) {
+        auto comm = this->network.StructureAt(STRUCTURE_BASE_SIZE_UNIT * std::make_pair(10, 0));
+        auto res = this->network.StructureAt(STRUCTURE_BASE_SIZE_UNIT * std::make_pair(-1, 0));
         Pathfinder pathfinder(this->network);
-        auto pathLocs = pathfinder.solve(this->network, res->getLocation(), comm->getLocation());
+        auto pathLocs = pathfinder.solve(this->network, res->PrimaryLocation(), comm->PrimaryLocation());
         auto path = new Path();
         this->paths.emplace(path);
         ++pathUniqueId;
         // const int FRAMES_PER_TILE = rand() % 10 + 10;
         const int FRAMES_PER_TILE = 10 - 2 * this->paths.size();
         for (int i = 0; i < pathLocs.size(); ++i) {
-            auto pathLoc = pathLocs[i];
-            auto pathEvent = new PathEvent(path, i, pathLoc, Direction::NO_DIR, frameData.frameNumber + FRAMES_PER_TILE * i);
-            path->orderedPathEvents.push_back(pathEvent);
+            path->Append({pathLocs[i]}, frameData.frameNumber + FRAMES_PER_TILE * i);
         }
         auto uniqueLocInMiddleOfNowhere = std::make_pair(INT32_MIN + pathUniqueId, 0);
-        auto pathEventVanish = new PathEvent(path, pathLocs.size(), uniqueLocInMiddleOfNowhere, Direction::NO_DIR,
-            frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
-        path->orderedPathEvents.push_back(pathEventVanish);
+        path->Append({uniqueLocInMiddleOfNowhere}, frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
         // TODO: Understand the short-comings of reconciliation
-        PathReconciler().reconcile(paths);
+        PathReconciler().Reconcile(paths);
     }
 
     auto desktopMode = sf::VideoMode::getDesktopMode();
@@ -219,21 +211,22 @@ StateChange SimulationState::simulate(const FrameData &frameData, const sf::Rend
         auto mousePosCentered = sf::Vector2f(
             (-GRID_CENTER + GRID_SIZE * mousePosFraction.x) * aspectRatio,
             -GRID_CENTER + (GRID_SIZE * mousePosFraction.y));
-        auto squareLoc = vectorToLocation(sf::Vector2i(floor(mousePosCentered.x / SQUARE_RESIZE), floor(mousePosCentered.y / SQUARE_RESIZE)));
-        spdlog::debug("Mouse click: {} {} {} {}", to_string(squareLoc), to_string(vectorToLocation(mousePos)),
-            to_string(vectorToLocation(mousePosFraction)), to_string(vectorToLocation(mousePosCentered)));
+        auto squareLoc = VectorToLocation(sf::Vector2i(floor(mousePosCentered.x / SQUARE_RESIZE), floor(mousePosCentered.y / SQUARE_RESIZE)));
+        squareLoc = STRUCTURE_BASE_SIZE_UNIT * squareLoc;
+        spdlog::trace("Mouse click: {} {} {} {}", to_string(squareLoc), to_string(VectorToLocation(mousePos)),
+            to_string(VectorToLocation(mousePosFraction)), to_string(VectorToLocation(mousePosCentered)));
 
-        if (!this->network.hasElementAt(squareLoc)) {
+        if (!this->network.HasStructureAt(squareLoc)) {
             WorldElement *spawnElem = nullptr;
-            if (inputManager.isHold(sf::Keyboard::Num1)) {
-                spawnElem = new CommercialBuilding(1, std::make_pair(1, 1), squareLoc);
-                this->network.addBuilding((Building *)spawnElem);
-            } else if (inputManager.isHold(sf::Keyboard::Num2)) {
-                spawnElem = new ResidentialBuilding(1, std::make_pair(1, 1), squareLoc);
-                this->network.addBuilding((Building *)spawnElem);
+            if (inputManager.IsHold(sf::Keyboard::Num1)) {
+                spawnElem = new CommercialBuilding(1, std::make_pair(STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT), squareLoc);
+                this->network.AddBuilding((Building *)spawnElem);
+            } else if (inputManager.IsHold(sf::Keyboard::Num2)) {
+                spawnElem = new ResidentialBuilding(1, std::make_pair(STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT), squareLoc);
+                this->network.AddBuilding((Building *)spawnElem);
             } else {
-                spawnElem = new Roadway(squareLoc);
-                this->network.addRoadway((Roadway *)spawnElem);
+                spawnElem = new RoadSegment(squareLoc);
+                this->network.AddRoadway((Roadway *)spawnElem);
             }
             stateChange.elements.push_back(spawnElem);
         }
@@ -247,10 +240,10 @@ RenderState::RenderState () {
     if (!squareTexture.loadFromFile("assets/square.png")) abort();
 }
 
-void RenderState::render(sf::RenderWindow &window, const FrameData &frameData, const StateChange &stateChange) {
+void RenderState::Render(sf::RenderWindow &window, const FrameData &frameData, const StateChange &stateChange) {
     for (auto element : stateChange.elements) {
         sf::Sprite * sprite = new sf::Sprite(this->squareTexture);
-        auto &[x, y] = element->getLocation();
+        auto [x, y] = (1.0 / STRUCTURE_BASE_SIZE_UNIT) * element->PrimaryLocation();
         sprite->setScale(sf::Vector2f(1.0 * SQUARE_RESIZE / SQUARE_PIXEL_DIM, 1.0 * SQUARE_RESIZE / SQUARE_PIXEL_DIM));
         sprite->setPosition(sf::Vector2f(1.0 * SCREEN_CENTER + x * SQUARE_RESIZE, 1.0 * SCREEN_CENTER + y * SQUARE_RESIZE));
         if (Roadway* r = dynamic_cast<Roadway*>(element); r != nullptr) {
@@ -288,7 +281,7 @@ void RenderState::render(sf::RenderWindow &window, const FrameData &frameData, c
 
     auto drawCar = [&](const PathEvent *pathEvent) {
         sf::Sprite * sprite = new sf::Sprite(this->squareTexture);
-        auto &[x, y] = pathEvent->location;
+        auto [x, y] = (1.0 / STRUCTURE_BASE_SIZE_UNIT) * pathEvent->locations[0];
         sprite->setPosition(sf::Vector2f(1.0 * SCREEN_CENTER + (x + .25) * SQUARE_RESIZE, 1.0 * SCREEN_CENTER + (y + .25) * SQUARE_RESIZE));
         auto randomColorScale = (int64_t(pathEvent->path) & 0xFF);
         sprite->setColor(sf::Color(0, randomColorScale, 0));
@@ -307,10 +300,11 @@ void RenderState::render(sf::RenderWindow &window, const FrameData &frameData, c
             drawCar(path->orderedPathEvents[0]);
         } else {
             drawCar(nextEvent);
-            path->remove(0);
+            path->Remove(0);
         }
     }
     for (auto path : toErase) {
         stateChange.paths->erase(path);
+        delete path;
     }
 }
