@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "base/spatial.h"
-#include "base/network.h"
+#include "network/network.h"
 #include "pathing/pathreconciler.h"
 #include "simulator/visit_spawner.h"
 #include "simulator/sfml_helpers.h"

@@ -15,3 +15,15 @@ bool InputManager::IsPress(sf::Keyboard::Key key) {
     }
     return false;
 }
+
+bool InputManager::IsClick(sf::Mouse::Button button) {
+    if (sf::Mouse::isButtonPressed(button)) {
+        if (!mouseToggle[button]) {
+            mouseToggle[button] = true;
+            return true;
+        }
+    } else {
+        mouseToggle[button] = false;
+    }
+    return false;
+}

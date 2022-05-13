@@ -9,7 +9,7 @@
 #include <queue>
 
 #include "base/spatial.h"
-#include "base/network.h"
+#include "network/network.h"
 
 namespace world
 {

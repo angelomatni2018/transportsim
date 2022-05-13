@@ -11,8 +11,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "base/network.h"
 #include "base/spatial.h"
+#include "network/network.h"
 
 namespace world
 {
@@ -40,7 +40,7 @@ namespace world
         return os << "T" << pathEvent.timeAtPoint;
     }
 
-    std::string to_string(const PathEvent& v) {
+    inline std::string to_string(const PathEvent& v) {
         std::stringstream strm; strm << v; return strm.str();
     }
 
@@ -74,7 +74,7 @@ namespace world
         return os;
     }
 
-    std::string to_string(const Path& v) {
+    inline std::string to_string(const Path& v) {
         std::stringstream strm; strm << v; return strm.str();
     }
 

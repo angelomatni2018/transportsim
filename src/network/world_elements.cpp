@@ -1,4 +1,4 @@
-#include "base/world_elements.h"
+#include "network/world_elements.h"
 #include "spdlog/spdlog.h"
 
 using namespace world;
@@ -65,8 +65,6 @@ int ResidentialBuilding::CurrentOccupancy() { return currentResidents; }
 int ResidentialBuilding::OccupancyCapacity() { return numResidents; }
 
 Roadway::Roadway(std::pair<int, int> size, Location loc) : SquareWorldElement{size, loc} {}
-
-RoadSegment::RoadSegment(Location loc) : Roadway{{STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT}, loc} {}
 
 Vehicle::Vehicle(ResidentialBuilding *home, std::vector<Location> initialOffsets, Location primaryLoc)
     : home{home}, CoordOffsetWorldElement{initialOffsets, primaryLoc} {}

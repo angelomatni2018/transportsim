@@ -7,7 +7,6 @@
 #include "spdlog/spdlog.h"
 
 using namespace world;
-using namespace std;
 
 unsigned int TrailingPathReconciled() {
     const int FRAMES_PER_TILE = 3;

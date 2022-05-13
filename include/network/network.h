@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 #include "base/spatial.h"
-#include "base/world_elements.h"
+#include "network/world_elements.h"
 
 namespace world {
 

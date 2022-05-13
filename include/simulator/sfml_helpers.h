@@ -10,10 +10,12 @@ using namespace world;
 class InputManager {
 public:
     std::unordered_map<sf::Keyboard::Key, bool> keyToggle;
+    std::unordered_map<sf::Mouse::Button, bool> mouseToggle;
 
     bool IsPress(sf::Keyboard::Key key) ;
     bool IsHold(sf::Keyboard::Key key) ;
 
+    bool IsClick(sf::Mouse::Button button) ;
 };
 
 template <class T>

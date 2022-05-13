@@ -1,4 +1,4 @@
-#include "base/nearest_building_iterator.h"
+#include "network/nearest_building_iterator.h"
 
 using namespace world;
 

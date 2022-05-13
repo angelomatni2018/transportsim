@@ -13,6 +13,8 @@ namespace world {
     // Every tile is subdivided into 16 unique locations (4x4) that vehicles can fall on.
     // The alternative would have been to use decimals for vehicle positioning, which is unwarranted complexity
     constexpr int STRUCTURE_BASE_SIZE_UNIT = 4;
+    // This magic number of 4 is NOT TO BE CHANGED. It is fundamental to the pathing math used
+    static_assert(STRUCTURE_BASE_SIZE_UNIT == 4);
 
     class Network;
 
@@ -119,6 +121,15 @@ namespace world {
         inline const static std::string Type = "Roadway";
         std::string GetType() const override { return Roadway::Type; }
 
+        std::vector<Location> LocationsThrough(Location from, Location to) {
+            auto locations = offsetsThrough(from, to);
+            for (int i = 0; i < locations.size(); ++i)
+                locations[i] = primaryLocation + locations[i];
+            return locations;
+        }
+
+        virtual std::vector<Location> offsetsThrough(Location from, Location to) = 0;
+
         friend class Network;
     };
 
@@ -131,6 +142,8 @@ namespace world {
 
         inline const static std::string Type = "RoadSegment";
         std::string GetType() const override { return RoadSegment::Type; }
+
+        std::vector<Location> offsetsThrough(Location from, Location to) override;
 
         friend class Network;
     };

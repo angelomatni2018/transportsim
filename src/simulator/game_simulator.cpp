@@ -10,6 +10,7 @@
 #include "simulator/game_simulator.h"
 #include "pathing/pathfinder.h"
 #include "pathing/pathreconciler.h"
+#include "pathing/vehiclepathconstructor.h"
 
 #include <stdio.h>
 #include <execinfo.h>
@@ -35,7 +36,7 @@ using namespace world;
 const int GRID_CENTER = 500;
 const int GRID_SIZE = 1000;
 const int SQUARE_PIXEL_DIM = 100;
-const int SQUARE_RESIZE = 50;
+const int SQUARE_RESIZE = 64;
 const int SCREEN_CENTER = GRID_CENTER;
 
 void drawGrid(sf::RenderWindow& win){
@@ -69,7 +70,7 @@ void drawGrid(sf::RenderWindow& win){
 
 int main() {
     signal(SIGSEGV, handler);
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::trace);
 
     // Create the main window
     auto desktopMode = sf::VideoMode::getDesktopMode();
@@ -147,14 +148,16 @@ StateChange SimulationState::Simulate(const FrameData &frameData, const sf::Rend
     stateChange.paths = &this->paths;
 
     if (network.Roads().size() == 0) {
-        auto leftBuilding = new ResidentialBuilding(1, STRUCTURE_BASE_SIZE_UNIT * std::make_pair(1, 1), STRUCTURE_BASE_SIZE_UNIT * std::make_pair(-1, 0));
-        auto rightBuilding = new CommercialBuilding(1, STRUCTURE_BASE_SIZE_UNIT * std::make_pair(1, 1), STRUCTURE_BASE_SIZE_UNIT * std::make_pair(10, 0));
+        int starterRoadLength = 3;
+        auto size1 = STRUCTURE_BASE_SIZE_UNIT * Location{1, 1};
+        auto leftBuilding = new ResidentialBuilding(1, size1, STRUCTURE_BASE_SIZE_UNIT * Location{-1, 0});
+        auto rightBuilding = new CommercialBuilding(1, size1, STRUCTURE_BASE_SIZE_UNIT * Location{starterRoadLength, 0});
         this->network.AddBuilding(leftBuilding);
         this->network.AddBuilding(rightBuilding);
         stateChange.elements.push_back(leftBuilding);
         stateChange.elements.push_back(rightBuilding);
-        for (auto i = 0; i < 10; ++i) {
-            auto firstRoad = new RoadSegment(STRUCTURE_BASE_SIZE_UNIT * std::make_pair(i, 0));
+        for (auto i = 0; i < starterRoadLength; ++i) {
+            auto firstRoad = new RoadSegment(STRUCTURE_BASE_SIZE_UNIT * Location{i, 0});
             this->network.AddRoadway(firstRoad);
             stateChange.elements.push_back(firstRoad);
         }
@@ -165,56 +168,34 @@ StateChange SimulationState::Simulate(const FrameData &frameData, const sf::Rend
     for (auto visit : visits) {
         auto comm = visit.first; auto res = visit.second;
 
-        Pathfinder pathfinder(this->network);
-        auto pathLocs = pathfinder.solve(this->network, res->PrimaryLocation(), comm->PrimaryLocation());
-        spdlog::debug("Path spawned: res at {} to comm at {} (path length {})", to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()), pathLocs.size());
-        auto path = new Path();
+        const int FRAMES_PER_TILE = 4;
+        VehiclePathConstructor pathConstructor(this->network, visit, frameData.frameNumber, FRAMES_PER_TILE);
+        auto path = pathConstructor.path;
+        spdlog::trace("Path spawned: res at {} to comm at {} (path length {})",
+            to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()), path->orderedPathEvents.size());
         this->paths.emplace(path);
         ++pathUniqueId;
-        const int FRAMES_PER_TILE = 10;
-        for (int i = 0; i < pathLocs.size(); ++i) {
-            path->Append({pathLocs[i]}, frameData.frameNumber + FRAMES_PER_TILE * i);
-        }
         auto uniqueLocInMiddleOfNowhere = std::make_pair(INT32_MIN + pathUniqueId, 0);
-        path->Append({uniqueLocInMiddleOfNowhere}, frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
+        path->Append({uniqueLocInMiddleOfNowhere}, path->orderedPathEvents.back()->timeAtPoint + FRAMES_PER_TILE);
     }
     if (visits.size() > 0) {
         PathReconciler().Reconcile(paths);
     }
 
-    if (inputManager.IsPress(sf::Keyboard::Q)) {
-        auto comm = this->network.StructureAt(STRUCTURE_BASE_SIZE_UNIT * std::make_pair(10, 0));
-        auto res = this->network.StructureAt(STRUCTURE_BASE_SIZE_UNIT * std::make_pair(-1, 0));
-        Pathfinder pathfinder(this->network);
-        auto pathLocs = pathfinder.solve(this->network, res->PrimaryLocation(), comm->PrimaryLocation());
-        auto path = new Path();
-        this->paths.emplace(path);
-        ++pathUniqueId;
-        // const int FRAMES_PER_TILE = rand() % 10 + 10;
-        const int FRAMES_PER_TILE = 10 - 2 * this->paths.size();
-        for (int i = 0; i < pathLocs.size(); ++i) {
-            path->Append({pathLocs[i]}, frameData.frameNumber + FRAMES_PER_TILE * i);
-        }
-        auto uniqueLocInMiddleOfNowhere = std::make_pair(INT32_MIN + pathUniqueId, 0);
-        path->Append({uniqueLocInMiddleOfNowhere}, frameData.frameNumber + FRAMES_PER_TILE * pathLocs.size());
-        // TODO: Understand the short-comings of reconciliation
-        PathReconciler().Reconcile(paths);
-    }
-
-    auto desktopMode = sf::VideoMode::getDesktopMode();
-    int screenWidth = desktopMode.width/2;
-    int screenHeight = desktopMode.height/2;
-    auto aspectRatio = 1.0 * desktopMode.width / desktopMode.height;
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+    auto windowSize = window.getSize();
+    int windowWidth = windowSize.x;
+    int windowHeight = windowSize.y;
+    auto aspectRatio = 1.0 * windowWidth / windowHeight;
+    if (inputManager.IsClick(sf::Mouse::Left)) {
         auto mousePos = sf::Mouse::getPosition(window);
-        auto mousePosFraction = sf::Vector2f(1.0 * mousePos.x / screenWidth, 1.0 * mousePos.y / screenHeight);
+        auto mousePosFraction = sf::Vector2f(1.0 * mousePos.x / windowWidth, 1.0 * mousePos.y / windowHeight);
         auto mousePosCentered = sf::Vector2f(
             (-GRID_CENTER + GRID_SIZE * mousePosFraction.x) * aspectRatio,
             -GRID_CENTER + (GRID_SIZE * mousePosFraction.y));
         auto squareLoc = VectorToLocation(sf::Vector2i(floor(mousePosCentered.x / SQUARE_RESIZE), floor(mousePosCentered.y / SQUARE_RESIZE)));
         squareLoc = STRUCTURE_BASE_SIZE_UNIT * squareLoc;
-        spdlog::trace("Mouse click: {} {} {} {}", to_string(squareLoc), to_string(VectorToLocation(mousePos)),
-            to_string(VectorToLocation(mousePosFraction)), to_string(VectorToLocation(mousePosCentered)));
+        spdlog::trace("Mouse: {} Square: {}", to_string(VectorToLocation(mousePos)), to_string(squareLoc));
+        spdlog::trace("Window: {},{}", windowWidth, windowHeight);
 
         if (!this->network.HasStructureAt(squareLoc)) {
             WorldElement *spawnElem = nullptr;
@@ -281,11 +262,11 @@ void RenderState::Render(sf::RenderWindow &window, const FrameData &frameData, c
 
     auto drawCar = [&](const PathEvent *pathEvent) {
         sf::Sprite * sprite = new sf::Sprite(this->squareTexture);
-        auto [x, y] = (1.0 / STRUCTURE_BASE_SIZE_UNIT) * pathEvent->locations[0];
-        sprite->setPosition(sf::Vector2f(1.0 * SCREEN_CENTER + (x + .25) * SQUARE_RESIZE, 1.0 * SCREEN_CENTER + (y + .25) * SQUARE_RESIZE));
+        auto [x, y] = pathEvent->locations[0];
+        sprite->setPosition(sf::Vector2f(1.0 * SCREEN_CENTER + x * SQUARE_RESIZE/4, 1.0 * SCREEN_CENTER + y * SQUARE_RESIZE/4));
         auto randomColorScale = (int64_t(pathEvent->path) & 0xFF);
         sprite->setColor(sf::Color(0, randomColorScale, 0));
-        sprite->setScale(0.5 * SQUARE_RESIZE / SQUARE_PIXEL_DIM, 0.5 * SQUARE_RESIZE / SQUARE_PIXEL_DIM);
+        sprite->setScale(0.25 * SQUARE_RESIZE / SQUARE_PIXEL_DIM, 0.25 * SQUARE_RESIZE / SQUARE_PIXEL_DIM);
         window.draw(*sprite);
     };
 

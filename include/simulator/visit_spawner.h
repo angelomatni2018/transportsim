@@ -1,8 +1,8 @@
 #ifndef SPAWNER
 #define SPAWNER
 
-#include "base/network.h"
-#include "base/nearest_building_iterator.h"
+#include "network/network.h"
+#include "network/nearest_building_iterator.h"
 
 #include <unordered_map>
 #include <vector>
