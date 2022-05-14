@@ -15,10 +15,10 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path *> paths) {
         return false;
     }
 
-    spdlog::trace("PathReconciler: Start");
-    for (auto path : paths) {
-        spdlog::trace(to_string(*path));
-    }
+    // spdlog::trace("PathReconciler: Start");
+    // for (auto path : paths) {
+    //     spdlog::trace(to_string(*path));
+    // }
 
     std::unordered_map<Location, PathEvent *, pair_hash> locToCurrentEvent;
     auto trackLocationsOfEvent = [&locToCurrentEvent](PathEvent *event) -> bool {
@@ -86,7 +86,7 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path *> paths) {
         auto pathEvent = eventQueue.top();
         eventQueue.pop();
 
-        spdlog::trace("Processing {} last blocked at loop index {}", to_string(*pathEvent), pathEventToLastTimeBlocked[pathEvent]);
+        // spdlog::trace("Processing {} last blocked at loop index {}", to_string(*pathEvent), pathEventToLastTimeBlocked[pathEvent]);
 
         // If a path event blocks this one:
         auto blockers = getBlockingEvents(pathEvent);
@@ -104,7 +104,7 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path *> paths) {
                 delayToWaitForLastBlocker = std::max(delayToWaitForLastBlocker, blockerNextEvent->timeAtPoint - pathEvent->timeAtPoint);
             }
 
-            spdlog::trace("Delaying {} by {}", to_string(*pathEvent), delayToWaitForLastBlocker);
+            // spdlog::trace("Delaying {} by {}", to_string(*pathEvent), delayToWaitForLastBlocker);
             pathEvent->Delay(delayToWaitForLastBlocker);
             ++eventsBlockedSinceLastProgressMade;
             pathEventToLastTimeBlocked[pathEvent] = index;
@@ -125,10 +125,10 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path *> paths) {
         }
     }
 
-    spdlog::trace("PathReconciler: End");
-    for (auto path : paths) {
-        spdlog::trace(to_string(*path));
-    }
+    // spdlog::trace("PathReconciler: End");
+    // for (auto path : paths) {
+    //     spdlog::trace(to_string(*path));
+    // }
 
     return eventsBlockedSinceLastProgressMade == 0;
 }
