@@ -3,6 +3,9 @@ if ! [[ -f include/external/catch.hpp ]]; then
     curl -L https://github.com/catchorg/Catch2/releases/download/v2.13.9/catch.hpp --output include/external/catch.hpp
 fi
 
+sudo apt-get update
+sudo apt-get install cmake libsfml-dev=2.5.1+dfsg-1build1 libspdlog-dev=1:1.5.0-1 -y
+
 # TODO: Try and get catch2 v3 working eventually:
 # mkdir -p external
 # cd external
