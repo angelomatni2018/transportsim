@@ -9,12 +9,14 @@ using namespace world;
 Network::Network() : buildings{}, spatialMap{} {};
 
 bool Network::HasStructureAt(Location loc) const {
-    auto alignedLoc = std::make_pair(loc.first - loc.first % STRUCTURE_BASE_SIZE_UNIT, loc.second - loc.second % STRUCTURE_BASE_SIZE_UNIT);
+    auto &[x, y] = loc;
+    auto alignedLoc = Location{x - x % STRUCTURE_BASE_SIZE_UNIT, y - y % STRUCTURE_BASE_SIZE_UNIT};
     return spatialMap.find(alignedLoc) != spatialMap.end();
 }
 
 const WorldElement *Network::StructureAt(Location loc) const {
-    auto alignedLoc = std::make_pair(loc.first - loc.first % STRUCTURE_BASE_SIZE_UNIT, loc.second - loc.second % STRUCTURE_BASE_SIZE_UNIT);
+    auto &[x, y] = loc;
+    auto alignedLoc = Location{x - x % STRUCTURE_BASE_SIZE_UNIT, y - y % STRUCTURE_BASE_SIZE_UNIT};
     return spatialMap.at(alignedLoc);
 }
 

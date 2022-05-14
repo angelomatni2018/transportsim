@@ -1,28 +1,34 @@
 #include "network/nearest_building_iterator.h"
+#include "spdlog/spdlog.h"
 
 using namespace world;
 
 NearestBuildingIterator::NearestBuildingIterator(const Network &network, const Building *target)
-    : network{network}, target{target}, nearests{} {
-    maxRadiusToCheck = std::max(
-        network.Bounds().second.first - network.Bounds().first.first,
-        network.Bounds().second.second - network.Bounds().second.first
-    );
-    radiusToCheck = 1;
+    : network{network}, target{target}, nearests{}, frontier{}, visited{} {
+
+    auto targetLoc = target->PrimaryLocation();
+    for (int i = -1; i <= 1; ++i) {
+        for (int j = -1; j <= 1; ++j) {
+            auto loc = targetLoc + STRUCTURE_BASE_SIZE_UNIT * Location{i, j};
+            checkToQueueRoadway(loc);
+        }
+    }
 }
 
 const Building *NearestBuildingIterator::Next() {
-    auto targetLoc = target->PrimaryLocation();
-    // Check all coordinates a manhattan distance of radius away from target
-    for (; nearests.empty() && radiusToCheck <= maxRadiusToCheck; ++radiusToCheck) {
-        // Check the leftmost and rightmost coordinates
-        checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(-radiusToCheck, 0));
-        checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(radiusToCheck, 0));
-        // Exclusive range i in (-radius, radius), j being such that abs(i + j) = radiusToCheck
-        // i + j = radiusToCheck OR i + j = -radiusToCheck ==> j = +/-radiusToCheck - i
-        for (int i = -radiusToCheck + 1; i < radiusToCheck; ++i) {
-            checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(i, radiusToCheck - i));
-            checkToQueueBuilding(targetLoc + STRUCTURE_BASE_SIZE_UNIT * std::make_pair(i, -radiusToCheck - i));
+    while (nearests.empty() && !frontier.empty()) {
+        int iters = 10;
+        while (--iters >= 0 && !frontier.empty()) {
+            auto roadway = frontier.front();
+            frontier.pop();
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    auto loc = roadway->PrimaryLocation() + STRUCTURE_BASE_SIZE_UNIT * Location{i, j};
+                    // spdlog::trace("Checking {}", to_string(loc));
+                    checkToQueueRoadway(loc);
+                    checkToQueueBuilding(loc);
+                }
+            }
         }
     }
 
@@ -32,11 +38,26 @@ const Building *NearestBuildingIterator::Next() {
     return nearest;
 }
 
+void NearestBuildingIterator::checkToQueueRoadway(Location loc) {
+    if (network.HasStructureAt(loc)) {
+        auto element = network.StructureAt(loc);
+        // spdlog::trace("Structure of type {} at {}", element->GetType(), to_string(element->PrimaryLocation()));
+        if (element->IsType(Roadway::Type)) {
+            auto roadway = (const Roadway *)element;
+            if (visited.find(roadway) == visited.end()) {
+                frontier.push(roadway);
+                visited.emplace(roadway);
+                // spdlog::trace("Roadway on frontier at {}", to_string(roadway->PrimaryLocation()));
+            }
+        }
+    }
+}
+
 void NearestBuildingIterator::checkToQueueBuilding(Location loc) {
     if (network.HasStructureAt(loc)) {
         auto element = network.StructureAt(loc);
-        if (auto building = dynamic_cast<const Building *>(element); building != nullptr) {
-            nearests.push(building);
+        if (element->IsType(Building::Type)) {
+            nearests.push((const Building *)element);
         }
     }
 }
