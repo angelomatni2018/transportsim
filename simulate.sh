@@ -10,4 +10,4 @@ if [[ -z "${TRANSPORTSIM_INSTALL_DIR:-""}" ]]; then
     fi
 fi
 
-./setup.sh && ./install/bin/game_simulator
+./setup.sh && ./install/bin/game_simulator_main

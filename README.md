@@ -13,3 +13,6 @@ spdlog (libspdlog-dev)
 git message format:
 ` (feat|refactor|fix|test|minor): brief summary`
 
+Here is some material to get started:
+* [Code base structure](code_base_structure.md)
+* [Terminology](terminology.md)

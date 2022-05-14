@@ -10,5 +10,12 @@ if [[ -z "${TRANSPORTSIM_INSTALL_DIR:-""}" ]]; then
     fi
 fi
 
+mkdir -p build
+cd build/
+export TRANSPORTSIM_BUILD_TESTS=true
+cmake -DCMAKE_INSTALL_PREFIX="$TRANSPORTSIM_INSTALL_DIR" -DCMAKE_BUILD_TYPE=Debug ../
+make -j4 && make install
+cd ../
+
 echo "Running tests"
 find ${TRANSPORTSIM_INSTALL_DIR}/bin -name "*_test" | xargs -I {} sh -c 'echo "Executing {}" ; {}'
