@@ -5,6 +5,7 @@
 #include <math.h>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 
 namespace world
@@ -26,6 +27,12 @@ namespace world
         }
     };
 
+    template <typename T, typename U, typename V>
+    std::pair<T, U> operator*(const V scalar, const std::pair<T, U> &l)
+    {
+        return {scalar * l.first, scalar * l.second};
+    }
+
     template <typename T, typename U>
     std::pair<T, U> operator+(const std::pair<T, U> &l, const std::pair<T, U> &r)
     {
@@ -39,44 +46,25 @@ namespace world
     }
 
     template <typename T, typename U>
-    std::ostream &operator<<(std::ostream &strm, const std::pair<T, U> &pair)
-    {
+    std::ostream &operator<<(std::ostream &strm, const std::pair<T, U> &pair) {
         strm << pair.first << "," << pair.second;
         return strm;
     }
 
     template <typename T, typename U>
-    std::string to_string(const std::pair<T, U> &pair) {
-        return std::to_string(pair.first) + "," + std::to_string(pair.second);
+    std::ostream &operator<<(std::ostream &strm, std::pair<T, U> &pair) {
+        strm << pair.first << "," << pair.second;
+        return strm;
     }
 
-    enum BiDirectionality
-    {
-        NO_BIDIR = 0,
-        N_S = 1,
-        W_E = 2,
-        SW_NE = 4,
-        NW_SE = 8
-    };
-
-    enum Direction
-    {
-        NO_DIR = 0,
-        NORTH,
-        SOUTH,
-        WEST,
-        EAST,
-        NORTHWEST,
-        NORTHEAST,
-        SOUTHWEST,
-        SOUTHEAST
-    };
+    template <typename T, typename U>
+    std::string to_string(const std::pair<T, U>& v) {
+        std::stringstream strm; strm << v; return strm.str();
+    }
 
     typedef std::pair<int, int> Location;
-    typedef std::pair<Location, Direction> LocDir;
 
     int manhattanDistance(const Location &loc1, const Location &loc2);
-    Direction getDirectionBetweenLocations(Location currentLocation, Location nextLocation);
 
     constexpr std::pair<int, int> NO_LOCATION = std::make_pair(INT32_MAX, INT32_MAX);
 

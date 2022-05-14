@@ -4,21 +4,12 @@
 #include <SFML/Graphics.hpp>
 
 #include "base/spatial.h"
-#include "base/network.h"
+#include "network/network.h"
 #include "pathing/pathreconciler.h"
 #include "simulator/visit_spawner.h"
 #include "simulator/sfml_helpers.h"
 
 using namespace world;
-
-class InputManager {
-public:
-    std::unordered_map<sf::Keyboard::Key, bool> keyToggle;
-
-    bool isPress(sf::Keyboard::Key key) { return isKeyPress(keyToggle, key); };
-    bool isHold(sf::Keyboard::Key key) { return isKeyHold(keyToggle, key); };
-
-};
 
 struct FrameData {
     const std::chrono::duration<int64_t, std::milli> FRAME_DURATION = std::chrono::milliseconds(50);
@@ -26,7 +17,7 @@ struct FrameData {
     std::chrono::nanoseconds rollingDuration = lastFrame - lastFrame;
     int64_t frameNumber = 0;
 
-    void nextFrame();
+    void NextFrame();
 };
 
 struct StateChange {
@@ -42,7 +33,7 @@ struct SimulationState {
     int pathUniqueId = 0;
 
     SimulationState (double visitSpawnRate) : spawner{visitSpawnRate} {}
-    StateChange simulate(const FrameData &frameData, const sf::RenderWindow &window, InputManager &inputManager) ;
+    StateChange Simulate(const FrameData &frameData, const sf::RenderWindow &window, InputManager &inputManager) ;
 };
 
 struct RenderState {
@@ -50,7 +41,7 @@ struct RenderState {
     std::unordered_map<WorldElement *, sf::Sprite *> elementSprites;
 
     RenderState () ;
-    void render(sf::RenderWindow &window, const FrameData &frameData, const StateChange &stateChange) ;
+    void Render(sf::RenderWindow &window, const FrameData &frameData, const StateChange &stateChange) ;
 };
 
 

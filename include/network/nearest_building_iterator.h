@@ -1,8 +1,8 @@
 #ifndef NEAREST_BUILDING_ITERATOR
 #define NEAREST_BUILDING_ITERATOR
 
-#include "base/network.h"
-#include "base/world_elements.h"
+#include "network/network.h"
+#include "network/world_elements.h"
 
 #include <queue>
 
@@ -20,7 +20,7 @@ namespace world {
 
     public:
         NearestBuildingIterator(const Network &network, const Building *target);
-        const Building *next();
+        const Building *Next();
     };
 }
 

@@ -1,8 +1,8 @@
 #ifndef SPAWNER
 #define SPAWNER
 
-#include "base/network.h"
-#include "base/nearest_building_iterator.h"
+#include "network/network.h"
+#include "network/nearest_building_iterator.h"
 
 #include <unordered_map>
 #include <vector>
@@ -22,7 +22,7 @@ public:
 
     // TODO: Have the visit spawner choose which residential building to assign to a commercial building by the distance
     // along roads between the two buildings, not a manhattan distance between the two building's coordinates
-    std::vector<std::pair<CommercialBuilding *, ResidentialBuilding *>> spawn(const Network &network, double timeElapsed);
+    std::vector<std::pair<CommercialBuilding *, ResidentialBuilding *>> Spawn(const Network &network, double timeElapsed);
 
 };
 

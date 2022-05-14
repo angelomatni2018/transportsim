@@ -3,16 +3,16 @@
 
 #include <iostream>
 #include <math.h>
-#include <unordered_map>
 #include <unordered_set>
 // #include <ctime>
 #include <queue>
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <sstream>
 
-#include "base/network.h"
 #include "base/spatial.h"
+#include "network/network.h"
 
 namespace world
 {
@@ -23,20 +23,25 @@ namespace world
     {
         Path *path;
         int index;
-        Location location;
-        Direction direction;
+        std::vector<Location> locations;
         double timeAtPoint;
 
-        PathEvent(Path *path, int idx, Location loc, Direction dir, double timeAtPoint)
-            : path{path}, index{idx}, location{loc}, direction{dir}, timeAtPoint{timeAtPoint} {};
+        PathEvent(Path *path, int idx, std::vector<Location> locs, double timeAtPoint)
+            : path{path}, index{idx}, locations{locs}, timeAtPoint{timeAtPoint} {};
 
-        LocDir locDir() { return std::make_pair(location, direction); };
-        void delay(double amount) ;
+        void Delay(double amount) ;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const PathEvent& pathEvent) {
-        os << pathEvent.index << ":" << pathEvent.location << "," << pathEvent.direction << "(" << pathEvent.timeAtPoint << ")";
-        return os;
+        os << pathEvent.index << ": ";
+        for (auto loc : pathEvent.locations) {
+            os << loc << " ";
+        }
+        return os << "T" << pathEvent.timeAtPoint;
+    }
+
+    inline std::string to_string(const PathEvent& v) {
+        std::stringstream strm; strm << v; return strm.str();
     }
 
     class Path
@@ -44,11 +49,21 @@ namespace world
     public:
         std::vector<PathEvent *> orderedPathEvents;
 
-        void remove(int idx) {
+        PathEvent *Append(std::vector<Location> locs, double timeAtPoint) {
+            auto event = new PathEvent(this, orderedPathEvents.size(), locs, timeAtPoint);
+            orderedPathEvents.push_back(event);
+            return event;
+        }
+
+        void Remove(int idx) {
             for (int i = idx + 1; i < orderedPathEvents.size(); ++i) {
                 --(orderedPathEvents[i]->index);
             }
             orderedPathEvents.erase(orderedPathEvents.begin() + idx);
+        }
+
+        ~Path() {
+            for (auto event : orderedPathEvents) delete event;
         }
     };
 
@@ -59,10 +74,14 @@ namespace world
         return os;
     }
 
+    inline std::string to_string(const Path& v) {
+        std::stringstream strm; strm << v; return strm.str();
+    }
+
     class PathReconciler
     {
     public:
-        static bool reconcile(std::unordered_set<Path *> paths);
+        static bool Reconcile(const std::unordered_set<Path *> paths);
     };
 
 }
