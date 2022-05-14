@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euxo pipefail
 
-if [[ -z "${TRANSPORTSIM_INSTALL_DIR}" ]]; then
+if [[ -z "${TRANSPORTSIM_INSTALL_DIR:-""}" ]]; then
     if [[ -f transportsim_enable ]]; then
 	source transportsim_enable
     else
