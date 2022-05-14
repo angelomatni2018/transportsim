@@ -33,6 +33,7 @@ namespace world {
         virtual const std::vector<Location> AllOccupiedLocations() const = 0;
 
         virtual std::string GetType() const = 0;
+        virtual bool IsType(const std::string &Ty) const { return false; }
 
         friend class Network;
     };
@@ -72,6 +73,7 @@ namespace world {
 
         inline const static std::string Type = "Building";
         std::string GetType() const override { return Building::Type; }
+        bool IsType(const std::string &Ty) const override { return Ty == Building::Type || SquareWorldElement::IsType(Ty); }
 
         friend class Network;
     };
@@ -91,6 +93,7 @@ namespace world {
 
         inline const static std::string Type = "CommercialBuilding";
         std::string GetType() const override { return CommercialBuilding::Type; }
+        bool IsType(const std::string &Ty) const override { return Ty == CommercialBuilding::Type || Building::IsType(Ty); }
 
         friend class Network;
     };
@@ -110,6 +113,7 @@ namespace world {
 
         inline const static std::string Type = "ResidentialBuilding";
         std::string GetType() const override { return ResidentialBuilding::Type; }
+        bool IsType(const std::string &Ty) const override { return Ty == ResidentialBuilding::Type || Building::IsType(Ty); }
 
         friend class Network;
     };
@@ -120,6 +124,7 @@ namespace world {
 
         inline const static std::string Type = "Roadway";
         std::string GetType() const override { return Roadway::Type; }
+        bool IsType(const std::string &Ty) const override { return Ty == Roadway::Type || SquareWorldElement::IsType(Ty); }
 
         std::vector<Location> LocationsThrough(Location from, Location to) {
             auto locations = offsetsThrough(from, to);
@@ -142,6 +147,7 @@ namespace world {
 
         inline const static std::string Type = "RoadSegment";
         std::string GetType() const override { return RoadSegment::Type; }
+        bool IsType(const std::string &Ty) const override { return Ty == RoadSegment::Type || Roadway::IsType(Ty); }
 
         std::vector<Location> offsetsThrough(Location from, Location to) override;
 
@@ -157,6 +163,7 @@ namespace world {
 
         inline const static std::string Type = "Vehicle";
         std::string GetType() const override { return Vehicle::Type; }
+        bool IsType(const std::string &Ty) const override { return Ty == Vehicle::Type || CoordOffsetWorldElement::IsType(Ty); }
     };
 
 }
