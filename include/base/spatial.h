@@ -8,6 +8,8 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "base/utilities.h"
+
 namespace world
 {
 
@@ -69,7 +71,9 @@ namespace world
     constexpr std::pair<int, int> NO_LOCATION = std::make_pair(INT32_MAX, INT32_MAX);
 
     constexpr double EPSILON = 0.000001;
-    bool equalWrtEpsilon(double a, double b);
+    bool equalish(double a, double b);
+    bool ltEqualish(double a, double b);
+    bool gtEqualish(double a, double b);
 
 } // end namespace world
 

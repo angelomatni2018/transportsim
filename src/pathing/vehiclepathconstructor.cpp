@@ -2,17 +2,36 @@
 
 using namespace world;
 
-VehiclePathConstructor::VehiclePathConstructor(
+Path *VehiclePathConstructor::Construct(
     const Network &network,
+    int id,
     std::pair<CommercialBuilding *, ResidentialBuilding *> visit,
     double startTime,
     double timeInterval
-) : currentTime{startTime}, timeInterval{timeInterval} {
-    path = new Path();
+) {
+    auto path = new Path();
+    auto currentTime = startTime;
+
+    auto appendEvent = [&](std::vector<Location> locations) {
+        path->Append(locations, currentTime);
+        currentTime += timeInterval;
+    };
+    auto appendEventsThrough = [&](Location structureFrom, Location structureAt, Location structureTo) {
+        auto primaryLocs = RoadSegment(structureAt).LocationsThrough(structureFrom, structureTo);
+        for (auto primaryLoc : primaryLocs) {
+            appendEvent({primaryLoc});
+        }
+    };
+
     Pathfinder pathfinder(network);
     auto &[comm, res] = visit;
     auto pathLocs = pathfinder.solve(network, res->PrimaryLocation(), comm->PrimaryLocation());
-    spdlog::trace("Path found from ({}) -> ({})", to_string(pathLocs[0]), to_string(pathLocs[pathLocs.size() - 1]));
+    // spdlog::trace("Path found from ({}) -> ({})", to_string(pathLocs[0]), to_string(pathLocs[pathLocs.size() - 1]));
+
+    // Prepend and append a unique location so that if multiple vehicles are spawned at the same "point"
+    // they funnel in and don't cause the reconciler to fail
+    auto uniqueLocInMiddleOfNowhere = Location{INT32_MIN + id, 0};
+    appendEvent({uniqueLocInMiddleOfNowhere});
 
     Location beforeResidentialBuilding = pathLocs[0] - (pathLocs[1] - pathLocs[0]);
     appendEventsThrough(beforeResidentialBuilding, pathLocs[0], pathLocs[1]);
@@ -32,20 +51,9 @@ VehiclePathConstructor::VehiclePathConstructor(
     }
 
     appendEventsThrough(pathLocs[1], pathLocs[0], beforeResidentialBuilding);
-}
 
-VehiclePathConstructor::~VehiclePathConstructor() {
-    // delete path;
-}
-
-void VehiclePathConstructor::appendEventsThrough(Location structureFrom, Location structureAt, Location structureTo) {
-    auto primaryLocs = RoadSegment(structureAt).LocationsThrough(structureFrom, structureTo);
-    for (auto primaryLoc : primaryLocs) {
-        appendEvent({primaryLoc});
-    }
-}
-
-void VehiclePathConstructor::appendEvent(std::vector<Location> locations) {
-    path->Append(locations, currentTime);
-    currentTime += timeInterval;
+    // Prepend and append a unique location so that if multiple vehicles are spawned at the same "point"
+    // they funnel in and don't cause the reconciler to fail
+    appendEvent({uniqueLocInMiddleOfNowhere});
+    return path;
 }

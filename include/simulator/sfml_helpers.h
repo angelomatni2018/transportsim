@@ -1,8 +1,7 @@
 #ifndef SFML_HELPERS
 #define SFML_HELPERS
 
-#include <SFML/Graphics.hpp>
-
+#include "simulator/imports.h"
 #include "base/spatial.h"
 
 using namespace world;

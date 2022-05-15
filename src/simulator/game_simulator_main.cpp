@@ -1,5 +1,3 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
 #include "spdlog/spdlog.h"
 
 #include <iostream>
@@ -10,25 +8,6 @@
 #include "simulator/game_simulator.h"
 #include "pathing/pathfinder.h"
 #include "pathing/pathreconciler.h"
-
-#include <stdio.h>
-#include <execinfo.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-void handler(int sig) {
-  void *array[10];
-  size_t size;
-
-  // get void*'s for all entries on the stack
-  size = backtrace(array, 10);
-
-  // print out all the frames to stderr
-  fprintf(stderr, "Error: signal %d:\n", sig);
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
-  exit(1);
-}
 
 using namespace world;
 
@@ -62,7 +41,7 @@ void drawGrid(sf::RenderWindow& win){
 }
 
 int main() {
-    signal(SIGSEGV, handler);
+    AddSegfaultHandler();
     spdlog::set_level(spdlog::level::trace);
 
     // Create the main window
