@@ -1,13 +1,13 @@
 #include "base/utilities.h"
 
-#include <stdio.h>
 #include <execinfo.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 void osSignalFailureHandler(int sig) {
-  void *array[10];
+  void* array[10];
   size_t size;
 
   // get void*'s for all entries on the stack
@@ -20,5 +20,5 @@ void osSignalFailureHandler(int sig) {
 }
 
 void AddSegfaultHandler() {
-    signal(SIGSEGV, osSignalFailureHandler);
+  signal(SIGSEGV, osSignalFailureHandler);
 }
