@@ -4,7 +4,7 @@ if ! [[ -f include/external/catch.hpp ]]; then
 fi
 
 sudo apt-get update
-sudo apt-get install cmake libsfml-dev=2.5.1+dfsg-1build1 libspdlog-dev=1:1.5.0-1 -y
+sudo apt-get install cmake clang-format libsfml-dev=2.5.1+dfsg-1build1 libspdlog-dev=1:1.5.0-1 -y
 
 # TODO: Try and get catch2 v3 working eventually:
 # mkdir -p external
