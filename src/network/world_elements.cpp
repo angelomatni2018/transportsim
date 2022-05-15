@@ -54,7 +54,7 @@ int CommercialBuilding::CurrentOccupancy() { return currentVisitors; }
 int CommercialBuilding::OccupancyCapacity() { return numVisitors; }
 
 ResidentialBuilding::ResidentialBuilding(int numOccupants, std::pair<int, int> size, Location loc)
-    : numResidents{numOccupants}, currentResidents{numOccupants}, Building{size, loc} {}
+    : numResidents{numOccupants}, currentResidents{0}, Building{size, loc} {}
 
 void ResidentialBuilding::AddOccupant() { currentResidents++; }
 

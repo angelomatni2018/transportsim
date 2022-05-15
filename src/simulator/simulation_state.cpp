@@ -22,8 +22,8 @@ StateChange SimulationState::Simulate(const FrameData &frameData, const sf::Rend
     if (network.Roads().size() == 0) {
         int starterRoadLength = 3;
         auto size1 = STRUCTURE_BASE_SIZE_UNIT * Location{1, 1};
-        auto leftBuilding = new ResidentialBuilding(1, size1, STRUCTURE_BASE_SIZE_UNIT * Location{-1, 0});
-        auto rightBuilding = new CommercialBuilding(1, size1, STRUCTURE_BASE_SIZE_UNIT * Location{starterRoadLength, 0});
+        auto leftBuilding = new ResidentialBuilding(999999, size1, STRUCTURE_BASE_SIZE_UNIT * Location{-1, 0});
+        auto rightBuilding = new CommercialBuilding(999999, size1, STRUCTURE_BASE_SIZE_UNIT * Location{starterRoadLength, 0});
         this->network.AddBuilding(leftBuilding);
         this->network.AddBuilding(rightBuilding);
         stateChange.elements.push_back(leftBuilding);
@@ -41,14 +41,10 @@ StateChange SimulationState::Simulate(const FrameData &frameData, const sf::Rend
         auto comm = visit.first; auto res = visit.second;
 
         const int FRAMES_PER_TILE = 4;
-        VehiclePathConstructor pathConstructor(this->network, visit, frameData.frameNumber, FRAMES_PER_TILE);
-        auto path = pathConstructor.path;
+        auto path = VehiclePathConstructor::Construct(this->network, nextPathId++, visit, frameData.frameNumber, FRAMES_PER_TILE);
         spdlog::trace("Path spawned: res at {} to comm at {} (path length {})",
             to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()), path->orderedPathEvents.size());
         this->paths.emplace(path);
-        ++pathUniqueId;
-        auto uniqueLocInMiddleOfNowhere = std::make_pair(INT32_MIN + pathUniqueId, 0);
-        path->Append({uniqueLocInMiddleOfNowhere}, path->orderedPathEvents.back()->timeAtPoint + FRAMES_PER_TILE);
     }
     if (visits.size() > 0) {
         PathReconciler().Reconcile(paths);

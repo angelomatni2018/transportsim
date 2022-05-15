@@ -1,11 +1,7 @@
 #ifndef SIMULATION_STATE
 #define SIMULATION_STATE
 
-#include <SFML/Graphics.hpp>
-
-#include "base/spatial.h"
-#include "network/network.h"
-#include "pathing/pathreconciler.h"
+#include "simulator/imports.h"
 #include "simulator/visit_spawner.h"
 #include "simulator/sfml_helpers.h"
 
@@ -27,8 +23,7 @@ struct SimulationState {
     Network network;
     VisitSpawner spawner;
     std::unordered_set<Path *> paths;
-    // TODO: Replace with method of determining the "home" coordinate of an entity on a path, where their paths always must end at
-    int pathUniqueId = 0;
+    int nextPathId = 0;
 
     SimulationState (double visitSpawnRate) : spawner{visitSpawnRate} {}
     StateChange Simulate(const FrameData &frameData, const sf::RenderWindow &window, InputManager &inputManager) ;

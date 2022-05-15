@@ -13,5 +13,6 @@ fi
 mkdir -p build
 cd build/
 cmake -DCMAKE_INSTALL_PREFIX="$TRANSPORTSIM_INSTALL_DIR" -DCMAKE_BUILD_TYPE=Debug ../
-make -j4 && make install
+make -j4
+make install
 cd ../

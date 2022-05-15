@@ -51,7 +51,7 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path *> paths) {
     auto eventCompare = [&pathEventToLastTimeBlocked](PathEvent *left, PathEvent *right) {
         auto leftTime = left->timeAtPoint;
         auto rightTime = right->timeAtPoint;
-        if (equalWrtEpsilon(leftTime, rightTime)) {
+        if (equalish(leftTime, rightTime)) {
             auto leftLastBlockedIdx = pathEventToLastTimeBlocked[left];
             auto rightLastBlockedIdx = pathEventToLastTimeBlocked[right];
             // process events blocked less recently (lower iteration index)
