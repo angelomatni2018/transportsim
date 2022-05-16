@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir -p include/external
 if ! [[ -f include/external/catch.hpp ]]; then
     curl -L https://github.com/catchorg/Catch2/releases/download/v2.13.9/catch.hpp --output include/external/catch.hpp
