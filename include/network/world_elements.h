@@ -119,6 +119,9 @@ public:
 };
 
 class Roadway : public SquareWorldElement {
+protected:
+  uint8_t directionsMask = ALL_DIRECTIONS;
+
 public:
   Roadway(std::pair<int, int> size, Location loc);
 
@@ -134,6 +137,13 @@ public:
   }
 
   virtual std::vector<Location> offsetsThrough(Location from, Location to) = 0;
+
+  uint8_t DirectionTowardsLocation(Location targetLocation) const;
+  static uint8_t DirectionWhenHeading(Heading heading);
+  uint8_t DirectionsMask() const { return directionsMask; }
+  void SetDirections(uint8_t mask) { directionsMask = mask; }
+  static bool CanDirectionsConnect(uint8_t incomingMask, uint8_t outgoingMask, Heading heading);
+  bool CanDirectionsConnect(Roadway* next) const;
 
   friend class Network;
 };

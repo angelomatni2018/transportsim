@@ -60,6 +60,11 @@ std::string to_string(const std::pair<T, U>& v) {
 }
 
 typedef std::pair<int, int> Location;
+// A delta/vector between two locations:
+typedef std::pair<int, int> Heading;
+
+enum Direction { North = 1, NorthEast = 2, East = 4, SouthEast = 8, South = 16, SouthWest = 32, West = 64, NorthWest = 128 };
+static constexpr uint8_t ALL_DIRECTIONS = 255U;
 
 int manhattanDistance(const Location& loc1, const Location& loc2);
 

@@ -52,7 +52,7 @@ std::vector<Location> Pathfinder::neighbors(const Network& network, Location cur
   std::vector<Location> n = {};
   for (int i = -1; i <= 1; ++i) {
     for (int j = -1; j <= 1; ++j) {
-      if (!(i == 0 ^ j == 0))
+      if (i == 0 && j == 0)
         continue;
       // FIXME: This is absolutely incorrect for any other structure than a minimum sized one
       Location p = current + STRUCTURE_BASE_SIZE_UNIT * Location(i, j);
@@ -76,15 +76,27 @@ std::vector<Location> Pathfinder::retrace(Location start, Location end, std::uno
   return path;
 }
 
-bool Pathfinder::isValidNeighborToTraverse(const Network& network, Location neighbor) {
+bool Pathfinder::isValidNeighborToTraverse(const Network& network, Location current, Location neighbor) {
   // If it is a roadway, check to add to the frontier
   if (!network.HasStructureAt(neighbor))
     return false;
-  auto element = network.StructureAt(neighbor);
+  auto neighborEl = network.StructureAt(neighbor);
+
   // TODO: This is intentionally restrictive to RoadSegment
   // as the implementation of neighbors() does not support any larger structures
-  auto roadway = dynamic_cast<const RoadSegment*>(element);
-  return roadway != nullptr;
+  if (!neighborEl->IsType(RoadSegment::Type))
+    return false;
+  auto neighborMask = static_cast<const RoadSegment*>(neighborEl)->DirectionsMask();
+
+  // If the current location is not a road segment, treat it as allowing travel towards any direction
+  auto currentMask = ALL_DIRECTIONS;
+  if (network.HasStructureAt(current)) {
+    auto currentEl = network.StructureAt(current);
+    if (currentEl->IsType(RoadSegment::Type))
+      currentMask = static_cast<const RoadSegment*>(currentEl)->DirectionsMask();
+  }
+
+  return Roadway::CanDirectionsConnect(currentMask, neighborMask, neighbor - current);
 }
 
 std::vector<Location> Pathfinder::solve(const Network& network, Location start, Location end) {
@@ -113,7 +125,7 @@ std::vector<Location> Pathfinder::solve(const Network& network, Location start, 
         return retrace(start, end, connections);
       }
 
-      if (!isValidNeighborToTraverse(network, neighbor))
+      if (!isValidNeighborToTraverse(network, loc, neighbor))
         continue;
 
       auto nextscore = scores[loc] + actualCost(network, neighbor);

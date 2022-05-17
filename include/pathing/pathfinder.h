@@ -26,7 +26,7 @@ public:
 
   virtual double actualCost(const Network& network, Location neighbor);
 
-  virtual bool isValidNeighborToTraverse(const Network& network, Location neighbor);
+  virtual bool isValidNeighborToTraverse(const Network& network, Location current, Location neighbor);
 
   std::vector<Location> neighbors(const Network& network, Location current);
 
