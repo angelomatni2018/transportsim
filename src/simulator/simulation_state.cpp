@@ -59,7 +59,8 @@ StateChange SimulationState::Simulate(const FrameData& frameData, const sf::Rend
   auto aspectRatio = 1.0 * windowWidth / windowHeight;
   if (inputManager.IsClick(sf::Mouse::Left)) {
     auto mousePos = sf::Mouse::getPosition(window);
-    auto mousePosFraction = sf::Vector2f(1.0 * mousePos.x / windowWidth, 1.0 * mousePos.y / windowHeight);
+    // HACK: We do 1 - y_fraction here so that 0.2 represents 20% from the bottom of the screen instead of 20% from the top
+    auto mousePosFraction = sf::Vector2f(1.0 * mousePos.x / windowWidth, 1.0 - (1.0 * mousePos.y / windowHeight));
     auto mousePosCentered =
         sf::Vector2f((-GRID_CENTER + GRID_SIZE * mousePosFraction.x) * aspectRatio, -GRID_CENTER + (GRID_SIZE * mousePosFraction.y));
     auto squareLoc = VectorToLocation(sf::Vector2i(floor(mousePosCentered.x / SQUARE_RESIZE), floor(mousePosCentered.y / SQUARE_RESIZE)));

@@ -10,9 +10,14 @@ RenderState::RenderState() {
 
 void draw(sf::RenderWindow& window, sf::Sprite* sprite) {
   auto originalPos = sprite->getPosition();
-  // TODO: Figure out how to properly apply global translations and reflections here
-  // sprite->setPosition(sf::Vector2f(originalPos.x, GRID_SIZE - originalPos.y));
-  // sprite->setRotation(90);
+  /*
+    What is this monstrosity of a transformation you may ask?
+    It reflects about the x-axis, bringing the origin from being at the top left to being at the bottom left
+    A simple (y_new -> MAX - y_old) transformation isn't enough BECAUSE sprite pixels are drawn from the top left.
+    We need to additionally offset y_old by the y-dimensional size of the scaled sprite.
+  */
+  auto scaledYDimSizeOfSprite = sprite->getScale().y * sprite->getTexture()->getSize().y;
+  sprite->setPosition(sf::Vector2f(originalPos.x, GRID_SIZE - (originalPos.y + scaledYDimSizeOfSprite)));
   // spdlog::trace("drawing: {}", to_string(VectorToLocation(sprite->getPosition())));
   window.draw(*sprite);
   sprite->setPosition(originalPos);
