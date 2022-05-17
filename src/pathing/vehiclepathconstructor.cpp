@@ -20,7 +20,12 @@ Path* VehiclePathConstructor::Construct(const Network& network, int id, std::pai
 
   Pathfinder pathfinder(network);
   auto& [comm, res] = visit;
+  // spdlog::trace("Path finding from ({}) -> ({})", to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()));
   auto pathLocs = pathfinder.solve(network, res->PrimaryLocation(), comm->PrimaryLocation());
+  if (pathLocs.size() < 3) {
+    delete path;
+    return nullptr;
+  }
   // spdlog::trace("Path found from ({}) -> ({})", to_string(pathLocs[0]), to_string(pathLocs[pathLocs.size() - 1]));
 
   // Prepend and append a unique location so that if multiple vehicles are spawned at the same "point"

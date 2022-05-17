@@ -87,5 +87,79 @@ int ResidentialBuilding::OccupancyCapacity() {
 
 Roadway::Roadway(std::pair<int, int> size, Location loc) : SquareWorldElement{size, loc} {}
 
+uint8_t Roadway::DirectionTowardsLocation(Location targetLocation) const {
+  return DirectionWhenHeading(targetLocation - this->primaryLocation);
+}
+
+uint8_t Roadway::DirectionWhenHeading(Heading heading) {
+  auto& [x, y] = heading;
+  auto normX = x / std::max(1, abs(x));
+  auto normY = y / std::max(1, abs(y));
+  switch (normX) {
+  case -1:
+    switch (normY) {
+    case -1:
+      return Direction::SouthWest;
+    case 0:
+      return Direction::West;
+    case 1:
+      return Direction::NorthWest;
+    }
+  case 0:
+    switch (normY) {
+    case -1:
+      return Direction::South;
+    case 1:
+      return Direction::North;
+    }
+  case 1:
+    switch (normY) {
+    case -1:
+      return Direction::SouthEast;
+    case 0:
+      return Direction::East;
+    case 1:
+      return Direction::NorthEast;
+    }
+  }
+  return 0;
+}
+
+bool Roadway::CanDirectionsConnect(Roadway* next) const {
+  return Roadway::CanDirectionsConnect(this->DirectionsMask(), next->DirectionsMask(), next->primaryLocation - this->primaryLocation);
+}
+
+bool Roadway::CanDirectionsConnect(uint8_t incomingMask, uint8_t outgoingMask, Heading heading) {
+  // Rotating by 45 degrees clockwise from North -> NorthEast -> East -> ... -> West -> NorthWest
+  // is done by left shifting one bit. From NorthWest -> North requires the left shifting to be circular bit shifting.
+  // To reverse a direction (180 degrees = 45 * 4), we do a circular bit shift of 4 bits.
+  auto circularLsh = [](uint8_t mask, int shift) { return mask << shift | mask >> (8 - shift); };
+  auto reverseDirections = [circularLsh](uint8_t mask) { return circularLsh(mask, 4); };
+
+  auto revOutMask = reverseDirections(outgoingMask);
+  auto headingMask = DirectionWhenHeading(heading);
+  if (headingMask == 0) {
+    spdlog::debug("Roadway::CanDirectionsConnect invalid heading provided: {}", to_string(heading));
+    return false;
+  }
+
+  // We reverse the outgoing mask because the direction masks express which way(s) you can EXIT a segment.
+  // If you can exit the outgoing segment (travel SouthWest from the center of it),
+  // then heading NorthWest is a valid way to ENTER the outgoing segment.
+  if ((incomingMask & headingMask) != 0 && (revOutMask & headingMask) != 0) {
+    return true;
+  }
+
+  // There is one caveat; if you exit in a diagonal direction,
+  // you can enter an adjacent segment from the corner shared by the segment you just exited
+  // Imagine a zig zag from the center of a segment to a corner and then from that corner to the 2nd segment's center.
+  auto isZigZagOrZagZig = [circularLsh](uint8_t mask1, uint8_t mask2, uint8_t headingDirection) {
+    auto headingZig = circularLsh(headingDirection, 1);
+    auto headingZag = circularLsh(headingDirection, 7);
+    return ((mask1 & headingZig) && (mask2 & headingZag)) || ((mask1 & headingZag) && (mask2 & headingZig));
+  };
+  return isZigZagOrZagZig(incomingMask, revOutMask, headingMask);
+}
+
 Vehicle::Vehicle(ResidentialBuilding* home, std::vector<Location> initialOffsets, Location primaryLoc)
     : home{home}, CoordOffsetWorldElement{initialOffsets, primaryLoc} {}

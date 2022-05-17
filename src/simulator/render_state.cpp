@@ -1,10 +1,21 @@
 #include "simulator/render_state.h"
 #include "simulator/simulation_config.h"
+#include "spdlog/spdlog.h"
 
 RenderState::RenderState() {
   // Load THE ONLY sprite we have :(
   if (!squareTexture.loadFromFile("assets/square.png"))
     abort();
+}
+
+void draw(sf::RenderWindow& window, sf::Sprite* sprite) {
+  auto originalPos = sprite->getPosition();
+  // TODO: Figure out how to properly apply global translations and reflections here
+  // sprite->setPosition(sf::Vector2f(originalPos.x, GRID_SIZE - originalPos.y));
+  // sprite->setRotation(90);
+  // spdlog::trace("drawing: {}", to_string(VectorToLocation(sprite->getPosition())));
+  window.draw(*sprite);
+  sprite->setPosition(originalPos);
 }
 
 void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, const StateChange& stateChange) {
@@ -26,7 +37,8 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
   }
 
   for (auto& [element, sprite] : elementSprites) {
-    window.draw(*sprite);
+    // spdlog::trace("element: {}", to_string(element->PrimaryLocation()));
+    draw(window, sprite);
 
     sf::Sprite spriteDot = sf::Sprite(this->squareTexture);
     spriteDot.setColor(sf::Color(255, 255, 255));
@@ -40,9 +52,10 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
       spriteDot.setScale(sf::Vector2f(.1, .1));
     }
     double offsetToCenterRescaledSquare = SQUARE_PIXEL_DIM * spriteDot.getScale().x / 2;
-    spriteDot.setPosition(sprite->getPosition() +
-                          sf::Vector2f(SQUARE_RESIZE / 2 - offsetToCenterRescaledSquare, SQUARE_RESIZE / 2 - offsetToCenterRescaledSquare));
-    window.draw(spriteDot);
+    double centerOfElementSquare = SQUARE_RESIZE / 2 - offsetToCenterRescaledSquare;
+    spriteDot.setPosition(sprite->getPosition() + sf::Vector2f(centerOfElementSquare, centerOfElementSquare));
+    // spdlog::trace("element dot");
+    draw(window, &spriteDot);
   }
 
   auto drawCar = [&](const PathEvent* pathEvent) {
@@ -51,11 +64,13 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
     // HACK: Avoid floating point error associated with "unique path middle of nowhere coordinate"
     if (x < -9999999)
       return;
-    sprite->setPosition(sf::Vector2f(1.0 * SCREEN_CENTER + x * SQUARE_RESIZE / 4, 1.0 * SCREEN_CENTER + y * SQUARE_RESIZE / 4));
+    auto centerAndAlign = [](int v) { return 1.0 * SCREEN_CENTER + v * SQUARE_RESIZE / 4; };
+    sprite->setPosition(sf::Vector2f(centerAndAlign(x), centerAndAlign(y)));
     auto randomColorScale = (int64_t(pathEvent->path) & 0xFF);
     sprite->setColor(sf::Color(0, randomColorScale, 0));
-    sprite->setScale(0.25 * SQUARE_RESIZE / SQUARE_PIXEL_DIM, 0.25 * SQUARE_RESIZE / SQUARE_PIXEL_DIM);
-    window.draw(*sprite);
+    auto numPixels = 0.25 * SQUARE_RESIZE / SQUARE_PIXEL_DIM;
+    sprite->setScale(numPixels, numPixels);
+    draw(window, sprite);
   };
 
   std::unordered_set<Path*> toErase;

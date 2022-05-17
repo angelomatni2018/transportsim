@@ -21,6 +21,10 @@ bool TrafficEvaluator::canContinueToSpawn(double secondsElapsed) {
 
   for (auto& [comm, res] : spawns) {
     auto path = VehiclePathConstructor::Construct(this->network, nextPathId++, {comm, res}, secondsElapsed, vehicleSecondsPerUnit);
+    if (path == nullptr) {
+      spdlog::error("TrafficEvaluator failed to path; this should not happen");
+      return false;
+    }
     this->activeVehiclePaths.emplace(path);
     this->pathToVisit[path] = {comm, res};
     auto pathLength = path->orderedPathEvents.size();
