@@ -133,8 +133,8 @@ bool Roadway::CanDirectionsConnect(uint8_t incomingMask, uint8_t outgoingMask, H
   // Rotating by 45 degrees clockwise from North -> NorthEast -> East -> ... -> West -> NorthWest
   // is done by left shifting one bit. From NorthWest -> North requires the left shifting to be circular bit shifting.
   // To reverse a direction (180 degrees = 45 * 4), we do a circular bit shift of 4 bits.
-  auto circularLsh = [](uint8_t mask, int shift) { return mask << shift | mask >> (8 - shift); };
-  auto reverseDirections = [circularLsh](uint8_t mask) { return circularLsh(mask, 4); };
+  auto circularLsh = [](uint8_t mask, int shift) -> uint8_t { return mask << shift | mask >> (8 - shift); };
+  auto reverseDirections = [circularLsh](uint8_t mask) -> uint8_t { return circularLsh(mask, 4); };
 
   auto revOutMask = reverseDirections(outgoingMask);
   auto headingMask = DirectionWhenHeading(heading);
@@ -142,6 +142,8 @@ bool Roadway::CanDirectionsConnect(uint8_t incomingMask, uint8_t outgoingMask, H
     spdlog::debug("Roadway::CanDirectionsConnect invalid heading provided: {}", to_string(heading));
     return false;
   }
+
+  // spdlog::debug("heading mask: {} incomingMask: {} revOutMask: {}", headingMask, incomingMask, revOutMask);
 
   // We reverse the outgoing mask because the direction masks express which way(s) you can EXIT a segment.
   // If you can exit the outgoing segment (travel SouthWest from the center of it),
@@ -153,12 +155,14 @@ bool Roadway::CanDirectionsConnect(uint8_t incomingMask, uint8_t outgoingMask, H
   // There is one caveat; if you exit in a diagonal direction,
   // you can enter an adjacent segment from the corner shared by the segment you just exited
   // Imagine a zig zag from the center of a segment to a corner and then from that corner to the 2nd segment's center.
+  auto isCardinal = [](uint8_t mask) { return mask & (Direction::North | Direction::South | Direction::West | Direction::East); };
   auto isZigZagOrZagZig = [circularLsh](uint8_t mask1, uint8_t mask2, uint8_t headingDirection) {
     auto headingZig = circularLsh(headingDirection, 1);
     auto headingZag = circularLsh(headingDirection, 7);
+    // spdlog::debug("heading zig: {} heading zag: {}", headingZig, headingZag);
     return ((mask1 & headingZig) && (mask2 & headingZag)) || ((mask1 & headingZag) && (mask2 & headingZig));
   };
-  return isZigZagOrZagZig(incomingMask, revOutMask, headingMask);
+  return isCardinal(headingMask) && isZigZagOrZagZig(incomingMask, revOutMask, headingMask);
 }
 
 Vehicle::Vehicle(ResidentialBuilding* home, std::vector<Location> initialOffsets, Location primaryLoc)

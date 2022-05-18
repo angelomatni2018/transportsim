@@ -6,14 +6,20 @@
 #include "simulator/simulation_state.h"
 #include "simulator/visit_spawner.h"
 
-using namespace world;
+namespace world {
 
-struct RenderState {
+class RenderState {
+private:
   sf::Texture squareTexture;
   std::unordered_map<WorldElement*, sf::Sprite*> elementSprites;
 
+  void drawRoadSegment(sf::RenderWindow& window, RoadSegment* segment);
+
+public:
   RenderState();
   void Render(sf::RenderWindow& window, const FrameData& frameData, const StateChange& stateChange);
 };
+
+} // namespace world
 
 #endif

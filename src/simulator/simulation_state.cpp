@@ -30,6 +30,7 @@ StateChange SimulationState::Simulate(const FrameData& frameData, const sf::Rend
     stateChange.elements.push_back(rightBuilding);
     for (auto i = 0; i < starterRoadLength; ++i) {
       auto firstRoad = new RoadSegment(STRUCTURE_BASE_SIZE_UNIT * Location{i, 0});
+      firstRoad->SetDirections(Direction::West | Direction::East);
       this->network.AddRoadway(firstRoad);
       stateChange.elements.push_back(firstRoad);
     }
@@ -53,36 +54,8 @@ StateChange SimulationState::Simulate(const FrameData& frameData, const sf::Rend
     PathReconciler().Reconcile(paths);
   }
 
-  auto windowSize = window.getSize();
-  int windowWidth = windowSize.x;
-  int windowHeight = windowSize.y;
-  auto aspectRatio = 1.0 * windowWidth / windowHeight;
-  if (inputManager.IsClick(sf::Mouse::Left)) {
-    auto mousePos = sf::Mouse::getPosition(window);
-    // HACK: We do 1 - y_fraction here so that 0.2 represents 20% from the bottom of the screen instead of 20% from the top
-    auto mousePosFraction = sf::Vector2f(1.0 * mousePos.x / windowWidth, 1.0 - (1.0 * mousePos.y / windowHeight));
-    auto mousePosCentered =
-        sf::Vector2f((-GRID_CENTER + GRID_SIZE * mousePosFraction.x) * aspectRatio, -GRID_CENTER + (GRID_SIZE * mousePosFraction.y));
-    auto squareLoc = VectorToLocation(sf::Vector2i(floor(mousePosCentered.x / SQUARE_RESIZE), floor(mousePosCentered.y / SQUARE_RESIZE)));
-    squareLoc = STRUCTURE_BASE_SIZE_UNIT * squareLoc;
-    spdlog::trace("Mouse: {} Square: {}", to_string(VectorToLocation(mousePos)), to_string(squareLoc));
-    spdlog::trace("Window: {},{}", windowWidth, windowHeight);
-
-    if (!this->network.HasStructureAt(squareLoc)) {
-      WorldElement* spawnElem = nullptr;
-      if (inputManager.IsHold(sf::Keyboard::Num1)) {
-        spawnElem = new CommercialBuilding(INT32_MAX, std::make_pair(STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT), squareLoc);
-        this->network.AddBuilding((Building*)spawnElem);
-      } else if (inputManager.IsHold(sf::Keyboard::Num2)) {
-        spawnElem = new ResidentialBuilding(INT32_MAX, std::make_pair(STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT), squareLoc);
-        this->network.AddBuilding((Building*)spawnElem);
-      } else {
-        spawnElem = new RoadSegment(squareLoc);
-        this->network.AddRoadway((Roadway*)spawnElem);
-      }
-      stateChange.elements.push_back(spawnElem);
-    }
-  }
+  auto spawned = this->structureDrawer.TrackMouseToSpawn(frameData, window, inputManager, network);
+  stateChange.elements.insert(stateChange.elements.end(), spawned.begin(), spawned.end());
 
   return stateChange;
 }
