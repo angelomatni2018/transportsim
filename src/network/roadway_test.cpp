@@ -38,9 +38,19 @@ bool RoadSegmentsDirectionsAligned() {
     return false;
   }
 
+  seg1 = RoadSegment({0, 0});
+  seg2 = RoadSegment({1, -1});
+  seg1.SetDirections(Direction::South);
+  seg2.SetDirections(Direction::West);
+  if (connects()) {
+    spdlog::error("RoadSegment::CanDirectionsConnect zig zag south-eastwardly, diagonal instead of a general cardinal direction, should NOT connect");
+    return false;
+  }
+
   return true;
 }
 
 TEST_CASE("Road segments next to each other are only 'connected' if their directions are aligned", "[]") {
+  spdlog::set_level(spdlog::level::trace);
   REQUIRE(RoadSegmentsDirectionsAligned() == true);
 }

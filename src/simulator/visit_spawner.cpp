@@ -1,6 +1,8 @@
 #include "simulator/visit_spawner.h"
 #include <functional>
 
+using namespace world;
+
 VisitSpawner::VisitSpawner(double spawnInterval) : spawnInterval{spawnInterval}, rollingTimeElapsed{0} {}
 
 std::vector<std::pair<CommercialBuilding*, ResidentialBuilding*>> VisitSpawner::Spawn(const Network& network, double timeElapsed) {

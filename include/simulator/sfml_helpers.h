@@ -1,10 +1,9 @@
 #ifndef SFML_HELPERS
 #define SFML_HELPERS
 
-#include "base/spatial.h"
 #include "simulator/imports.h"
 
-using namespace world;
+namespace world {
 
 class InputManager {
 public:
@@ -15,11 +14,14 @@ public:
   bool IsHold(sf::Keyboard::Key key);
 
   bool IsClick(sf::Mouse::Button button);
+  bool IsHold(sf::Mouse::Button button);
 };
 
 template <class T>
 Location VectorToLocation(sf::Vector2<T> loc) {
   return std::make_pair(round(loc.x), round(loc.y));
 }
+
+} // namespace world
 
 #endif

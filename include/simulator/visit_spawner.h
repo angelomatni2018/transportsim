@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-using namespace world;
+namespace world {
 
 class VisitSpawner {
 private:
@@ -37,5 +37,7 @@ public:
 
   std::vector<const ResidentialBuilding*> MostDemandedResidentialBuildings() const;
 };
+
+} // namespace world
 
 #endif

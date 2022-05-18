@@ -55,5 +55,9 @@ Path* VehiclePathConstructor::Construct(const Network& network, int id, std::pai
   // Prepend and append a unique location so that if multiple vehicles are spawned at the same "point"
   // they funnel in and don't cause the reconciler to fail
   appendEvent({uniqueLocInMiddleOfNowhere});
+
+  for (auto i = 2; i < path->orderedPathEvents.size() - 1; ++i) {
+    path->orderedPathEvents[i]->locations.push_back(path->orderedPathEvents[i - 1]->locations[0]);
+  }
   return path;
 }

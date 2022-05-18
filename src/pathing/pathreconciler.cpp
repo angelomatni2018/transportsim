@@ -17,13 +17,13 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
 
   // spdlog::trace("PathReconciler: Start");
   // for (auto path : paths) {
-  //     spdlog::trace(to_string(*path));
+  //   spdlog::trace(to_string(*path));
   // }
 
   std::unordered_map<Location, PathEvent*, pair_hash> locToCurrentEvent;
   auto trackLocationsOfEvent = [&locToCurrentEvent](PathEvent* event) -> bool {
     for (auto loc : event->locations) {
-      if (locToCurrentEvent.find(loc) != locToCurrentEvent.end()) {
+      if (locToCurrentEvent.find(loc) != locToCurrentEvent.end() && locToCurrentEvent.at(loc)->path != event->path) {
         spdlog::debug("PathReconciler: location {} already taken by {}", to_string(loc), to_string(*locToCurrentEvent[loc]));
         return false;
       }
@@ -39,7 +39,7 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
   auto getBlockingEvents = [&locToCurrentEvent](PathEvent* event) -> std::unordered_set<PathEvent*> {
     std::unordered_set<PathEvent*> blockers;
     for (auto loc : event->locations) {
-      if (locToCurrentEvent.find(loc) != locToCurrentEvent.end() && locToCurrentEvent[loc] != event) {
+      if (locToCurrentEvent.find(loc) != locToCurrentEvent.end() && locToCurrentEvent[loc]->path != event->path) {
         blockers.emplace(locToCurrentEvent[loc]);
       }
     }
@@ -92,6 +92,7 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
     auto blockers = getBlockingEvents(pathEvent);
     if (blockers.size() > 0) {
       double delayToWaitForLastBlocker = 0;
+      PathEvent* longestBlocker = nullptr;
       for (auto blockingEvent : blockers) {
         // The blocking event has nowhere next to go
         if (blockingEvent->path->orderedPathEvents.size() == blockingEvent->index + 1) {
@@ -101,10 +102,14 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
 
         // Delay the event
         auto blockerNextEvent = blockingEvent->path->orderedPathEvents[blockingEvent->index + 1];
-        delayToWaitForLastBlocker = std::max(delayToWaitForLastBlocker, blockerNextEvent->timeAtPoint - pathEvent->timeAtPoint);
+        auto blockedFor = blockerNextEvent->timeAtPoint - pathEvent->timeAtPoint;
+        if (blockedFor >= delayToWaitForLastBlocker) {
+          delayToWaitForLastBlocker = blockedFor;
+          longestBlocker = blockingEvent;
+        }
       }
 
-      // spdlog::trace("Delaying {} by {}", to_string(*pathEvent), delayToWaitForLastBlocker);
+      // spdlog::trace("Delaying {} by {} because of {}", to_string(*pathEvent), delayToWaitForLastBlocker, to_string(*longestBlocker));
       pathEvent->Delay(delayToWaitForLastBlocker);
       ++eventsBlockedSinceLastProgressMade;
       pathEventToLastTimeBlocked[pathEvent] = index;
@@ -127,8 +132,11 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
 
   // spdlog::trace("PathReconciler: End");
   // for (auto path : paths) {
-  //     spdlog::trace(to_string(*path));
+  //   spdlog::trace(to_string(*path));
   // }
 
+  // if (eventsBlockedSinceLastProgressMade > 0) {
+  //   spdlog::debug("PathReconciler: traffic jam for {} consecutive attempts to reconcile events", eventsBlockedSinceLastProgressMade);
+  // }
   return eventsBlockedSinceLastProgressMade == 0;
 }

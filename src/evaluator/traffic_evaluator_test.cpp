@@ -23,8 +23,8 @@ bool StraightLineOverwhelmed() {
 
   auto check = [](TrafficEvaluator& evaluator, double expected = 100) -> bool {
     auto actual = evaluator.TimeBeforeOverload(100);
-    spdlog::trace("StraightLineOverwhelmed: time to overwhelm: expected {} actual {}", expected, actual);
     if (!equalish(actual, expected)) {
+      spdlog::error("StraightLineOverwhelmed: time to overwhelm: expected {} actual {}", expected, actual);
       return false;
     }
     return true;
@@ -43,6 +43,6 @@ bool StraightLineOverwhelmed() {
 
 TEST_CASE("Straight line road with spawns faster than travel time is overwhelmed", "[]") {
   AddSegfaultHandler();
-  spdlog::set_level(spdlog::level::trace);
+  // spdlog::set_level(spdlog::level::trace);
   REQUIRE(StraightLineOverwhelmed() == true);
 }

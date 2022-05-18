@@ -1,5 +1,7 @@
 #include "simulator/sfml_helpers.h"
 
+using namespace world;
+
 bool InputManager::IsHold(sf::Keyboard::Key key) {
   return sf::Keyboard::isKeyPressed(key);
 }
@@ -14,6 +16,10 @@ bool InputManager::IsPress(sf::Keyboard::Key key) {
     keyToggle[key] = false;
   }
   return false;
+}
+
+bool InputManager::IsHold(sf::Mouse::Button button) {
+  return sf::Mouse::isButtonPressed(button);
 }
 
 bool InputManager::IsClick(sf::Mouse::Button button) {
