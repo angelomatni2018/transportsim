@@ -22,6 +22,11 @@ Location VectorToLocation(sf::Vector2<T> loc) {
   return std::make_pair(round(loc.x), round(loc.y));
 }
 
+template <class T>
+sf::Vector2<T> Vector2(T val) {
+  return sf::Vector2<T>(val, val);
+}
+
 } // namespace world
 
 #endif

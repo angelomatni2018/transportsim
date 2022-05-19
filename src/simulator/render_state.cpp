@@ -25,6 +25,12 @@ void draw(sf::RenderWindow& window, sf::Sprite* sprite) {
   sprite->setPosition(originalPos);
 }
 
+float centerAndAlignStructureCoord(float x) {
+  float center = SCREEN_CENTER;
+  float subSquareoffset = x * SUBSQUARE_NUM_PIXELS;
+  return center + subSquareoffset;
+}
+
 void RenderState::drawRoadSegment(sf::RenderWindow& window, RoadSegment* segment) {
   auto sprite = elementSprites.at(segment);
   draw(window, sprite);
@@ -57,15 +63,13 @@ void RenderState::drawRoadSegment(sf::RenderWindow& window, RoadSegment* segment
       {Location{4, 3}, Direction::NorthEast},
   };
 
-  float subSquareSize = (1.0 / STRUCTURE_BASE_SIZE_UNIT);
-  float subSquarePixels = subSquareSize * SQUARE_RESIZE / SQUARE_PIXEL_DIM;
   sf::Sprite subSquare(this->squareTexture);
-  subSquare.setScale(sf::Vector2f(subSquarePixels, subSquarePixels));
+  subSquare.setScale(Vector2(SUBSQUARE_SCALE_FACTOR));
   subSquare.setColor(sf::Color(200, 200, 200));
-  auto gridPos = [subSquareSize](int segmentCoord, int offsetCoord) -> float {
-    return SCREEN_CENTER + (segmentCoord * SQUARE_RESIZE) + (subSquareSize * SQUARE_RESIZE * offsetCoord);
+  auto gridPos = [](int segmentCoord, int offsetCoord) -> float {
+    return centerAndAlignStructureCoord(segmentCoord) + (SUBSQUARE_NUM_PIXELS * offsetCoord);
   };
-  auto [x, y] = subSquareSize * segment->PrimaryLocation();
+  auto [x, y] = segment->PrimaryLocation();
   auto drawAtOffset = [&, x = x, y = y](int i, int j) {
     if (segment->DirectionsMask() & offsetToValidDirections.at(Location{i, j})) {
       subSquare.setPosition(sf::Vector2f(gridPos(x, i), gridPos(y, j)));
@@ -97,9 +101,9 @@ void RenderState::drawRoadSegment(sf::RenderWindow& window, RoadSegment* segment
 void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, const StateChange& stateChange) {
   for (auto element : stateChange.elements) {
     sf::Sprite* sprite = new sf::Sprite(this->squareTexture);
-    auto [x, y] = (1.0 / STRUCTURE_BASE_SIZE_UNIT) * element->PrimaryLocation();
-    sprite->setScale(sf::Vector2f(1.0 * SQUARE_RESIZE / SQUARE_PIXEL_DIM, 1.0 * SQUARE_RESIZE / SQUARE_PIXEL_DIM));
-    sprite->setPosition(sf::Vector2f(1.0 * SCREEN_CENTER + x * SQUARE_RESIZE, 1.0 * SCREEN_CENTER + y * SQUARE_RESIZE));
+    auto [x, y] = element->PrimaryLocation();
+    sprite->setScale(Vector2(SQUARE_SCALE_FACTOR));
+    sprite->setPosition(sf::Vector2f(centerAndAlignStructureCoord(x), centerAndAlignStructureCoord(y)));
     if (element->IsType(Roadway::Type)) {
       sprite->setColor(sf::Color(100, 100, 100));
     } else if (element->IsType(CommercialBuilding::Type)) {
@@ -131,9 +135,9 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
       spriteDot.setColor(sf::Color(100, 0, 0));
       spriteDot.setScale(sf::Vector2f(.1, .1));
     }
-    double offsetToCenterRescaledSquare = SQUARE_PIXEL_DIM * spriteDot.getScale().x / 2;
-    double centerOfElementSquare = SQUARE_RESIZE / 2 - offsetToCenterRescaledSquare;
-    spriteDot.setPosition(sprite->getPosition() + sf::Vector2f(centerOfElementSquare, centerOfElementSquare));
+    float offsetToCenterRescaledSquare = SQUARE_PIXEL_DIM * spriteDot.getScale().x / 2;
+    float centerOfElementSquare = SQUARE_NUM_PIXELS / 2 - offsetToCenterRescaledSquare;
+    spriteDot.setPosition(sprite->getPosition() + Vector2(centerOfElementSquare));
     // spdlog::trace("element dot");
     draw(window, &spriteDot);
   }
@@ -145,12 +149,10 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
       return;
 
     for (auto& [x, y] : pathEvent->locations) {
-      auto centerAndAlign = [](int v) { return 1.0 * SCREEN_CENTER + v * SQUARE_RESIZE / 4; };
-      sprite->setPosition(sf::Vector2f(centerAndAlign(x), centerAndAlign(y)));
+      sprite->setPosition(sf::Vector2f(centerAndAlignStructureCoord(x), centerAndAlignStructureCoord(y)));
       auto randomColorScale = (int64_t(pathEvent->path) & 0xFF);
       sprite->setColor(sf::Color(0, randomColorScale, 0));
-      auto numPixels = 0.25 * SQUARE_RESIZE / SQUARE_PIXEL_DIM;
-      sprite->setScale(numPixels, numPixels);
+      sprite->setScale(Vector2(SUBSQUARE_SCALE_FACTOR));
       draw(window, sprite);
     }
   };

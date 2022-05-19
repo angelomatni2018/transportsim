@@ -25,7 +25,8 @@ std::vector<WorldElement*> StructureDrawer::TrackMouseToSpawn(const FrameData& f
   auto mousePosFraction = sf::Vector2f(1.0 * mousePos.x / windowWidth, 1.0 - (1.0 * mousePos.y / windowHeight));
   auto mousePosCentered =
       sf::Vector2f((-GRID_CENTER + GRID_SIZE * mousePosFraction.x) * aspectRatio, -GRID_CENTER + (GRID_SIZE * mousePosFraction.y));
-  auto currentLocation = STRUCTURE_BASE_SIZE_UNIT * Location{floor(mousePosCentered.x / SQUARE_RESIZE), floor(mousePosCentered.y / SQUARE_RESIZE)};
+  auto currentLocation =
+      STRUCTURE_BASE_SIZE_UNIT * Location{floor(mousePosCentered.x / SQUARE_NUM_PIXELS), floor(mousePosCentered.y / SQUARE_NUM_PIXELS)};
   spdlog::trace("Mouse: {} Square: {}", to_string(VectorToLocation(mousePos)), to_string(currentLocation));
   spdlog::trace("Window: {},{}", windowWidth, windowHeight);
 
