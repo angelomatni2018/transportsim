@@ -4,28 +4,30 @@
 using namespace world;
 
 Pathfinder::Pathfinder(const Network& network) : shortestPathFromLocToLoc{} {
-  for (auto oneLocElementPair : network.SpatialMap()) {
-    auto from = oneLocElementPair.first;
-    for (auto otherLocElementPair : network.SpatialMap()) {
-      auto to = otherLocElementPair.first;
-      auto path = solve(network, from, to);
-      if (path.size() > 0)
-        shortestPathFromLocToLoc[from][to] = path;
-    }
-  }
+  // TODO: Move this to an eager-loading pathfinder derived class
+  // for (auto oneLocElementPair : network.SpatialMap()) {
+  //   auto from = oneLocElementPair.first;
+  //   for (auto otherLocElementPair : network.SpatialMap()) {
+  //     auto to = otherLocElementPair.first;
+  //     auto path = Solve(network, from, to);
+  //     if (path.size() > 0)
+  //       shortestPathFromLocToLoc[from][to] = path;
+  //   }
+  // }
 }
 
-const std::vector<Location>& Pathfinder::ShortestPath(const Location& from, const Location& to) {
-  if (this->shortestPathFromLocToLoc.find(from) == this->shortestPathFromLocToLoc.end()) {
-    spdlog::error("No element at 'from' location\n");
-    abort();
-  }
-  if (this->shortestPathFromLocToLoc[from].find(to) == this->shortestPathFromLocToLoc[from].end()) {
-    spdlog::error("No element at 'to' location\n");
-    abort();
-  }
-  return shortestPathFromLocToLoc[from][to];
-}
+// TODO: Move this to an eager-loading pathfinder derived class
+// const std::vector<Location>& Pathfinder::ShortestPath(const Location& from, const Location& to) {
+//   if (this->shortestPathFromLocToLoc.find(from) == this->shortestPathFromLocToLoc.end()) {
+//     spdlog::error("No element at 'from' location\n");
+//     abort();
+//   }
+//   if (this->shortestPathFromLocToLoc[from].find(to) == this->shortestPathFromLocToLoc[from].end()) {
+//     spdlog::error("No element at 'to' location\n");
+//     abort();
+//   }
+//   return shortestPathFromLocToLoc[from][to];
+// }
 
 typedef std::pair<int, Location> WeightedLocation;
 struct WeightedLocCmp {
@@ -77,29 +79,10 @@ std::vector<Location> Pathfinder::retrace(Location start, Location end, std::uno
 }
 
 bool Pathfinder::isValidNeighborToTraverse(const Network& network, Location current, Location neighbor) {
-  // If it is a roadway, check to add to the frontier
-  if (!network.HasStructureAt(neighbor))
-    return false;
-  auto neighborEl = network.StructureAt(neighbor);
-
-  // TODO: This is intentionally restrictive to RoadSegment
-  // as the implementation of neighbors() does not support any larger structures
-  if (!neighborEl->IsType(RoadSegment::Type))
-    return false;
-  auto neighborMask = static_cast<const RoadSegment*>(neighborEl)->DirectionsMask();
-
-  // If the current location is not a road segment, treat it as allowing travel towards any direction
-  auto currentMask = ALL_DIRECTIONS;
-  if (network.HasStructureAt(current)) {
-    auto currentEl = network.StructureAt(current);
-    if (currentEl->IsType(RoadSegment::Type))
-      currentMask = static_cast<const RoadSegment*>(currentEl)->DirectionsMask();
-  }
-
-  return Roadway::CanDirectionsConnect(currentMask, neighborMask, neighbor - current);
+  return true;
 }
 
-std::vector<Location> Pathfinder::solve(const Network& network, Location start, Location end) {
+std::vector<Location> Pathfinder::Solve(const Network& network, Location start, Location end) {
   // std::cout << "Solving: " << start << " to " << end << "\n";
   std::unordered_map<Location, int, pair_hash> guesses = {{start, heuristic(start, end)}};
   std::unordered_map<Location, int, pair_hash> scores = {{start, 0}};
@@ -119,14 +102,13 @@ std::vector<Location> Pathfinder::solve(const Network& network, Location start, 
     if (loc == end)
       return retrace(start, end, connections);
     for (auto neighbor : neighbors(network, loc)) {
-      // Buildings cannot be traversed through, only traversed to
+      if (!isValidNeighborToTraverse(network, loc, neighbor))
+        continue;
+
       if (neighbor == end) {
         connections.emplace(neighbor, loc);
         return retrace(start, end, connections);
       }
-
-      if (!isValidNeighborToTraverse(network, loc, neighbor))
-        continue;
 
       auto nextscore = scores[loc] + actualCost(network, neighbor);
       if (scores.find(neighbor) != scores.end() && scores.at(neighbor) <= nextscore)

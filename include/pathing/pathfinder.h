@@ -17,11 +17,7 @@ class Pathfinder {
 private:
   std::unordered_map<Location, std::unordered_map<Location, std::vector<Location>, pair_hash>, pair_hash> shortestPathFromLocToLoc;
 
-public:
-  Pathfinder(const Network& network);
-
-  const std::vector<Location>& ShortestPath(const Location& from, const Location& to);
-
+protected:
   virtual double heuristic(Location start, Location end);
 
   virtual double actualCost(const Network& network, Location neighbor);
@@ -32,7 +28,13 @@ public:
 
   std::vector<Location> retrace(Location start, Location end, std::unordered_map<Location, Location, pair_hash> connections);
 
-  std::vector<Location> solve(const Network& network, Location start, Location end);
+public:
+  Pathfinder(const Network& network);
+
+  // TODO: Move this to a eager-loading pathfinder derived class:
+  // const std::vector<Location>& ShortestPath(const Location& from, const Location& to);
+
+  std::vector<Location> Solve(const Network& network, Location start, Location end);
 };
 
 } // namespace world

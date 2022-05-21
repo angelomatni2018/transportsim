@@ -3,8 +3,8 @@
 
 #include "base/spatial.h"
 #include "network/network.h"
-#include "pathing/pathfinder.h"
 #include "pathing/pathreconciler.h"
+#include "pathing/roadpathfinder.h"
 #include "spdlog/spdlog.h"
 
 namespace world {

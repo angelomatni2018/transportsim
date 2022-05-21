@@ -18,10 +18,10 @@ Path* VehiclePathConstructor::Construct(const Network& network, int id, std::pai
     }
   };
 
-  Pathfinder pathfinder(network);
+  RoadPathfinder pathfinder(network);
   auto& [comm, res] = visit;
   // spdlog::trace("Path finding from ({}) -> ({})", to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()));
-  auto pathLocs = pathfinder.solve(network, res->PrimaryLocation(), comm->PrimaryLocation());
+  auto pathLocs = pathfinder.Solve(network, res->PrimaryLocation(), comm->PrimaryLocation());
   if (pathLocs.size() < 3) {
     delete path;
     return nullptr;
