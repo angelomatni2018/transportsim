@@ -17,7 +17,8 @@ bool TwoClusters() {
     locs.emplace(Location{10, i});
   }
 
-  auto clusters = KMeans(locs, 2).Get();
+  auto kmeans = KMeans(locs, 2);
+  auto clusters = kmeans.Get();
   if (clusters.size() != 2) {
     spdlog::trace("TwoClusters: num clusters {}", clusters.size());
     return false;
@@ -46,6 +47,6 @@ bool TwoClusters() {
 }
 
 TEST_CASE("Two clusters are correctly computed", "[]") {
-  spdlog::set_level(spdlog::level::trace);
+  // spdlog::set_level(spdlog::level::trace);
   REQUIRE(TwoClusters() == true);
 }

@@ -2,9 +2,8 @@
 
 using namespace world;
 
-Path* VehiclePathConstructor::Construct(const Network& network, int id, std::pair<CommercialBuilding*, ResidentialBuilding*> visit, double startTime,
-                                        double timeInterval) {
-  auto path = new Path();
+bool VehiclePathConstructor::Construct(Path* path, const Network& network, int id, std::pair<CommercialBuilding*, ResidentialBuilding*> visit,
+                                       double startTime, double timeInterval) {
   auto currentTime = startTime;
 
   auto appendEvent = [&](std::vector<Location> locations) {
@@ -18,13 +17,12 @@ Path* VehiclePathConstructor::Construct(const Network& network, int id, std::pai
     }
   };
 
-  RoadPathfinder pathfinder(network);
+  RoadPathfinder pathfinder;
   auto& [comm, res] = visit;
   // spdlog::trace("Path finding from ({}) -> ({})", to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()));
   auto pathLocs = pathfinder.Solve(network, res->PrimaryLocation(), comm->PrimaryLocation());
   if (pathLocs.size() < 3) {
-    delete path;
-    return nullptr;
+    return false;
   }
   // spdlog::trace("Path found from ({}) -> ({})", to_string(pathLocs[0]), to_string(pathLocs[pathLocs.size() - 1]));
 
@@ -59,5 +57,5 @@ Path* VehiclePathConstructor::Construct(const Network& network, int id, std::pai
   for (auto i = 2; i < path->orderedPathEvents.size() - 1; ++i) {
     path->orderedPathEvents[i]->locations.push_back(path->orderedPathEvents[i - 1]->locations[0]);
   }
-  return path;
+  return true;
 }

@@ -33,12 +33,10 @@ std::vector<WorldElement*> StructureDrawer::TrackMouseToSpawn(const FrameData& f
   if (!network.HasStructureAt(currentLocation)) {
     auto structureSize = std::make_pair(STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT);
     if (inputManager.IsHold(sf::Keyboard::Num1)) {
-      auto spawnElem = new CommercialBuilding(INT32_MAX, structureSize, currentLocation);
-      network.AddBuilding((Building*)spawnElem);
+      auto spawnElem = network.Add(CommercialBuilding(INT32_MAX, structureSize, currentLocation));
       return {spawnElem};
     } else if (inputManager.IsHold(sf::Keyboard::Num2)) {
-      auto spawnElem = new ResidentialBuilding(INT32_MAX, structureSize, currentLocation);
-      network.AddBuilding((Building*)spawnElem);
+      auto spawnElem = network.Add(ResidentialBuilding(INT32_MAX, structureSize, currentLocation));
       return {spawnElem};
     }
   }
@@ -61,9 +59,8 @@ std::vector<WorldElement*> StructureDrawer::TrackMouseToSpawn(const FrameData& f
     if (network.HasStructureAt(atLoc)) {
       return {const_cast<WorldElement*>(network.StructureAt(atLoc)), false};
     }
-    auto road = new RoadSegment(atLoc);
+    auto road = static_cast<Roadway*>(network.Add(RoadSegment(atLoc)));
     road->SetDirections(0);
-    network.AddRoadway(road);
     return {road, true};
   };
 

@@ -9,9 +9,7 @@ namespace world {
 
 class RoadPathfinder : public Pathfinder {
 public:
-  RoadPathfinder(const Network& network) : Pathfinder{network} {}
-
-  bool isValidNeighborToTraverse(const Network& network, Location current, Location neighbor) override;
+  bool isValidNeighborToTraverse(const Network& network, Location current, Location neighbor, Location start, Location end) override;
 };
 
 } // namespace world

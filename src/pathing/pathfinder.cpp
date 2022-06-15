@@ -3,18 +3,18 @@
 
 using namespace world;
 
-Pathfinder::Pathfinder(const Network& network) : shortestPathFromLocToLoc{} {
-  // TODO: Move this to an eager-loading pathfinder derived class
-  // for (auto oneLocElementPair : network.SpatialMap()) {
-  //   auto from = oneLocElementPair.first;
-  //   for (auto otherLocElementPair : network.SpatialMap()) {
-  //     auto to = otherLocElementPair.first;
-  //     auto path = Solve(network, from, to);
-  //     if (path.size() > 0)
-  //       shortestPathFromLocToLoc[from][to] = path;
-  //   }
-  // }
-}
+// Pathfinder::Pathfinder() : shortestPathFromLocToLoc{} {
+// TODO: Move this to an eager-loading pathfinder derived class
+// for (auto oneLocElementPair : network.SpatialMap()) {
+//   auto from = oneLocElementPair.first;
+//   for (auto otherLocElementPair : network.SpatialMap()) {
+//     auto to = otherLocElementPair.first;
+//     auto path = Solve(network, from, to);
+//     if (path.size() > 0)
+//       shortestPathFromLocToLoc[from][to] = path;
+//   }
+// }
+// }
 
 // TODO: Move this to an eager-loading pathfinder derived class
 // const std::vector<Location>& Pathfinder::ShortestPath(const Location& from, const Location& to) {
@@ -78,7 +78,7 @@ std::vector<Location> Pathfinder::retrace(Location start, Location end, std::uno
   return path;
 }
 
-bool Pathfinder::isValidNeighborToTraverse(const Network& network, Location current, Location neighbor) {
+bool Pathfinder::isValidNeighborToTraverse(const Network& network, Location current, Location neighbor, Location start, Location end) {
   return true;
 }
 
@@ -102,7 +102,7 @@ std::vector<Location> Pathfinder::Solve(const Network& network, Location start, 
     if (loc == end)
       return retrace(start, end, connections);
     for (auto neighbor : neighbors(network, loc)) {
-      if (!isValidNeighborToTraverse(network, loc, neighbor))
+      if (!isValidNeighborToTraverse(network, loc, neighbor, start, end))
         continue;
 
       if (neighbor == end) {

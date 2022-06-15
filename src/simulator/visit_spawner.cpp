@@ -32,6 +32,8 @@ std::vector<std::pair<CommercialBuilding*, ResidentialBuilding*>> VisitSpawner::
       auto nextCommInLine = this->spawnQueue.front();
 
       bool canBeVisited = false;
+      // spdlog::trace("Comm {} occupancy: {} {}", to_string(nextCommInLine->PrimaryLocation()), nextCommInLine->CurrentOccupancy(),
+      //               nextCommInLine->CurrentOccupancy());
       if (nextCommInLine->CurrentOccupancy() < nextCommInLine->OccupancyCapacity()) {
         NearestBuildingIterator iter(network, nextCommInLine);
         const Building* building;
@@ -47,6 +49,7 @@ std::vector<std::pair<CommercialBuilding*, ResidentialBuilding*>> VisitSpawner::
 
           spawnedVisits.push_back(std::make_pair(nextCommInLine, res));
           nextCommInLine->AddOccupant();
+          // spdlog::trace("Comm {} now has {} occupants", to_string(nextCommInLine->PrimaryLocation()), nextCommInLine->CurrentOccupancy());
           res->AddOccupant();
           canBeVisited = true;
           break;

@@ -99,8 +99,11 @@ void RenderState::drawRoadSegment(sf::RenderWindow& window, RoadSegment* segment
 }
 
 void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, const StateChange& stateChange) {
-  for (auto element : stateChange.elements) {
-    sf::Sprite* sprite = new sf::Sprite(this->squareTexture);
+  for (auto element : stateChange.removes) {
+    elementSprites.erase(element);
+  }
+  for (auto element : stateChange.adds) {
+    sf::Sprite* sprite = sPool.With(sf::Sprite(this->squareTexture));
     auto [x, y] = element->PrimaryLocation();
     sprite->setScale(Vector2(SQUARE_SCALE_FACTOR));
     sprite->setPosition(sf::Vector2f(centerAndAlignStructureCoord(x), centerAndAlignStructureCoord(y)));
@@ -143,17 +146,17 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
   }
 
   auto drawCar = [&](const PathEvent* pathEvent) {
-    sf::Sprite* sprite = new sf::Sprite(this->squareTexture);
+    sf::Sprite sprite = sf::Sprite(this->squareTexture);
     // HACK: Avoid floating point error associated with "unique path middle of nowhere coordinate"
     if (pathEvent->locations[0].first < -9999999)
       return;
 
     for (auto& [x, y] : pathEvent->locations) {
-      sprite->setPosition(sf::Vector2f(centerAndAlignStructureCoord(x), centerAndAlignStructureCoord(y)));
+      sprite.setPosition(sf::Vector2f(centerAndAlignStructureCoord(x), centerAndAlignStructureCoord(y)));
       auto randomColorScale = (int64_t(pathEvent->path) & 0xFF);
-      sprite->setColor(sf::Color(0, randomColorScale, 0));
-      sprite->setScale(Vector2(SUBSQUARE_SCALE_FACTOR));
-      draw(window, sprite);
+      sprite.setColor(sf::Color(0, randomColorScale, 0));
+      sprite.setScale(Vector2(SUBSQUARE_SCALE_FACTOR));
+      draw(window, &sprite);
     }
   };
 

@@ -3,7 +3,7 @@
 
 using namespace world;
 
-Point GeometricMedian::Median(std::unordered_set<Point*> cluster, float threshold) {
+Point GeometricMedian::Median(std::unordered_set<Point*>& cluster, float threshold) {
   // Initially position at mean of cluster
   Point newMedian;
   positionAtMean(cluster, newMedian);
@@ -11,13 +11,13 @@ Point GeometricMedian::Median(std::unordered_set<Point*> cluster, float threshol
   while (euclidianDistance(oldMedian, newMedian) > threshold) {
     oldMedian = newMedian;
     newMedian = weiszfeldStep(oldMedian, cluster);
-    // spdlog::trace("{} -> {}", to_string(oldMedian), to_string(newMedian));
+    spdlog::trace("{} -> {}", to_string(oldMedian), to_string(newMedian));
   }
   return newMedian;
 }
 
-void GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(std::unordered_set<PointToPosition*> pointsToPosition, float threshold) {
-  for (auto pointToPosition : pointsToPosition) {
+void GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(std::unordered_set<PointToPosition*>& pointsToPosition, float threshold) {
+  for (auto& pointToPosition : pointsToPosition) {
     positionAtMean(pointToPosition->clusterPoints, *pointToPosition->pointToPositionAtMedian);
   }
 
@@ -27,7 +27,7 @@ void GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(std::unordered_s
     maxAdjustment = 0.0;
     for (auto pointToPosition : pointsToPosition) {
       pointToPosition->proposedAdjustedPosition = weiszfeldStep(*pointToPosition->pointToPositionAtMedian, pointToPosition->clusterPoints);
-      // for (auto p : pointToPosition->clusterPoints) {
+      // for (auto& p : pointToPosition->clusterPoints) {
       // spdlog::trace("Cluster point {}", to_string(*p));
       // }
       // spdlog::trace("Proposed {}", to_string(pointToPosition->proposedAdjustedPosition));

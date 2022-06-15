@@ -11,8 +11,8 @@ namespace world {
 
 class VehiclePathConstructor {
 public:
-  static Path* Construct(const Network& network, int id, std::pair<CommercialBuilding*, ResidentialBuilding*> visit, double startTime,
-                         double timeInterval);
+  static bool Construct(Path* path, const Network& network, int id, std::pair<CommercialBuilding*, ResidentialBuilding*> visit, double startTime,
+                        double timeInterval);
 };
 
 } // namespace world

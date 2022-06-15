@@ -13,6 +13,7 @@ namespace world {
 
 class Network {
 private:
+  Pool<WorldElement> elementPool;
   std::vector<Building*> buildings;
   std::vector<Roadway*> roads;
 
@@ -22,21 +23,41 @@ private:
   std::pair<Location, Location> bounds;
   void expandBounds(Location outermost);
   void addToSpatialMap(WorldElement* element);
+  Building* addBuilding(Building* building);
+  Roadway* addRoadway(Roadway* roadway);
 
 public:
   Network();
 
   const std::unordered_map<Location, WorldElement*, pair_hash>& SpatialMap() const;
+  const int Size() const;
   const std::vector<Building*>& Buildings() const;
   const std::vector<Roadway*>& Roads() const;
 
   bool HasStructureAt(Location loc) const;
   const WorldElement* StructureAt(Location loc) const;
 
-  void AddBuilding(Building* building);
-  void AddRoadway(Roadway* roadway);
+  template <class DerivedElement>
+  DerivedElement* Add(DerivedElement&& el) {
+    WorldElement* elPtr = elementPool.With<DerivedElement>(std::move(el));
+    if (el.IsType(Building::Type)) {
+      addBuilding(static_cast<Building*>(elPtr));
+    } else if (el.IsType(Roadway::Type)) {
+      addRoadway(static_cast<Roadway*>(elPtr));
+    } else {
+      spdlog::error("Network does not support WorldElement of type {}", el.GetType());
+      abort();
+    }
+    return static_cast<DerivedElement*>(elPtr);
+  }
+
+  // WorldElement* Add(WorldElement&& el);
+  WorldElement* AddCopyOf(const WorldElement* el);
+  void Clear();
 
   std::pair<Location, Location> Bounds() const { return bounds; }
+
+  bool IsAdjacentAndConnected(const WorldElement* from, const WorldElement* to) const;
 };
 
 } // namespace world

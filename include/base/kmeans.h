@@ -1,14 +1,6 @@
 #ifndef KMEANS
 #define KMEANS
 
-#include <iostream>
-#include <math.h>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
 #include "base/spatial.h"
 
 namespace world {
@@ -19,6 +11,7 @@ class KMeans {
 private:
   int numClusters;
   std::unordered_map<Location, int, pair_hash> locToCluster;
+  std::unordered_set<Cluster*> clusters;
 
   struct Grouping {
     std::vector<int> numMembers;
@@ -31,7 +24,8 @@ private:
   bool assignPointsToClosestCluster();
 
 public:
-  KMeans(std::unordered_set<Location, pair_hash> locs, int c);
+  KMeans(const std::unordered_set<Location, pair_hash> locs, int c);
+  ~KMeans();
 
   std::unordered_set<Cluster*> Get();
 };

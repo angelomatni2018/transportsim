@@ -20,6 +20,9 @@ class Network;
 
 class WorldElement {
 protected:
+  // The reason WorldElement isn't an abstract class is so that it can be used in rvalue references with Pool<WorldElement>
+  std::string NOT_IMPL = "WorldElement: unimplemented; do not construct this class";
+
   // The primary location is some arbitrary point from which the rest of the occupied coordinates
   // of this world element are represented.
   // Other coords are represented either as offsets or by a shape's dimensions
@@ -30,10 +33,20 @@ public:
   WorldElement(Location primaryLoc);
 
   const Location& PrimaryLocation() const;
-  virtual const std::vector<Location> AllOccupiedLocations() const = 0;
+  virtual const std::vector<Location> AllOccupiedLocations() const {
+    spdlog::error(NOT_IMPL);
+    abort();
+  }
 
-  virtual std::string GetType() const = 0;
+  virtual std::string GetType() const {
+    spdlog::error(NOT_IMPL);
+    abort();
+  }
   virtual bool IsType(const std::string& Ty) const { return false; }
+  virtual WorldElement* Copy(Pool<WorldElement>& pool) const {
+    spdlog::error(NOT_IMPL);
+    abort();
+  }
 
   friend class Network;
 };
@@ -74,6 +87,7 @@ public:
   inline const static std::string Type = "Building";
   std::string GetType() const override { return Building::Type; }
   bool IsType(const std::string& Ty) const override { return Ty == Building::Type || SquareWorldElement::IsType(Ty); }
+  WorldElement* Copy(Pool<WorldElement>& pool) const override { return pool.With(Building(*this)); };
 
   friend class Network;
 };
@@ -94,6 +108,7 @@ public:
   inline const static std::string Type = "CommercialBuilding";
   std::string GetType() const override { return CommercialBuilding::Type; }
   bool IsType(const std::string& Ty) const override { return Ty == CommercialBuilding::Type || Building::IsType(Ty); }
+  WorldElement* Copy(Pool<WorldElement>& pool) const override { return pool.With(CommercialBuilding(*this)); };
 
   friend class Network;
 };
@@ -114,6 +129,7 @@ public:
   inline const static std::string Type = "ResidentialBuilding";
   std::string GetType() const override { return ResidentialBuilding::Type; }
   bool IsType(const std::string& Ty) const override { return Ty == ResidentialBuilding::Type || Building::IsType(Ty); }
+  WorldElement* Copy(Pool<WorldElement>& pool) const override { return pool.With(ResidentialBuilding(*this)); };
 
   friend class Network;
 };
@@ -158,6 +174,7 @@ public:
   inline const static std::string Type = "RoadSegment";
   std::string GetType() const override { return RoadSegment::Type; }
   bool IsType(const std::string& Ty) const override { return Ty == RoadSegment::Type || Roadway::IsType(Ty); }
+  WorldElement* Copy(Pool<WorldElement>& pool) const override { return pool.With(RoadSegment(*this)); };
 
   std::vector<Location> offsetsThrough(Location from, Location to) override;
 
@@ -174,6 +191,7 @@ public:
   inline const static std::string Type = "Vehicle";
   std::string GetType() const override { return Vehicle::Type; }
   bool IsType(const std::string& Ty) const override { return Ty == Vehicle::Type || CoordOffsetWorldElement::IsType(Ty); }
+  WorldElement* Copy(Pool<WorldElement>& pool) const override { return pool.With(Vehicle(*this)); };
 };
 
 } // namespace world

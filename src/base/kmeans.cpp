@@ -2,7 +2,7 @@
 
 using namespace world;
 
-KMeans::KMeans(std::unordered_set<Location, pair_hash> locs, int c) : numClusters{c}, locToCluster{} {
+KMeans::KMeans(const std::unordered_set<Location, pair_hash> locs, int c) : numClusters{c}, locToCluster{} {
   // Initial cluster assignment (randomly chosen locations)
   auto clusterIdx = 0;
   for (auto loc : locs) {
@@ -14,6 +14,26 @@ KMeans::KMeans(std::unordered_set<Location, pair_hash> locs, int c) : numCluster
   while (assignPointsToClosestCluster()) {
     computeGroupingFromClusterMapping(grouping);
   }
+
+  std::vector<std::unordered_set<Location, pair_hash>> clusterLocs;
+  clusterLocs.resize(numClusters);
+  for (auto& [loc, clusterIdx] : locToCluster) {
+    clusterLocs[clusterIdx].emplace(loc);
+  }
+  for (auto locs : clusterLocs) {
+    Point p{0.0, 0.0};
+    for (auto& loc : locs) {
+      p = p + Point{loc};
+    }
+    p = Point{p.first / locs.size(), p.second / locs.size()};
+    clusters.emplace(new Cluster(locs, p));
+  }
+}
+
+KMeans::~KMeans() {
+  for (auto cluster : clusters)
+    delete cluster;
+  clusters.clear();
 }
 
 void KMeans::computeGroupingFromClusterMapping(Grouping& g) {
@@ -33,21 +53,7 @@ void KMeans::computeGroupingFromClusterMapping(Grouping& g) {
 }
 
 std::unordered_set<Cluster*> KMeans::Get() {
-  std::unordered_set<Cluster*> clusters;
-  std::vector<std::unordered_set<Location, pair_hash>> clusterLocs;
-  clusterLocs.resize(numClusters);
-  for (auto& [loc, clusterIdx] : locToCluster) {
-    clusterLocs[clusterIdx].emplace(loc);
-  }
-  for (auto locs : clusterLocs) {
-    Point p{0.0, 0.0};
-    for (auto& loc : locs) {
-      p = p + Point{loc};
-    }
-    p = Point{p.first / locs.size(), p.second / locs.size()};
-    clusters.emplace(new Cluster(locs, p));
-  }
-  return clusters;
+  return this->clusters;
 }
 
 bool KMeans::assignPointsToClosestCluster() {

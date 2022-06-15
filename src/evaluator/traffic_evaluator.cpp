@@ -20,8 +20,8 @@ bool TrafficEvaluator::canContinueToSpawn(double secondsElapsed) {
   }
 
   for (auto& [comm, res] : spawns) {
-    auto path = VehiclePathConstructor::Construct(this->network, nextPathId++, {comm, res}, secondsElapsed, vehicleSecondsPerUnit);
-    if (path == nullptr) {
+    auto path = new Path();
+    if (!VehiclePathConstructor::Construct(path, this->network, nextPathId++, {comm, res}, secondsElapsed, vehicleSecondsPerUnit)) {
       spdlog::error("TrafficEvaluator failed to path; this should not happen");
       return false;
     }

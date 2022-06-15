@@ -22,15 +22,13 @@ protected:
 
   virtual double actualCost(const Network& network, Location neighbor);
 
-  virtual bool isValidNeighborToTraverse(const Network& network, Location current, Location neighbor);
+  virtual bool isValidNeighborToTraverse(const Network& network, Location current, Location neighbor, Location start, Location end);
 
   std::vector<Location> neighbors(const Network& network, Location current);
 
   std::vector<Location> retrace(Location start, Location end, std::unordered_map<Location, Location, pair_hash> connections);
 
 public:
-  Pathfinder(const Network& network);
-
   // TODO: Move this to a eager-loading pathfinder derived class:
   // const std::vector<Location>& ShortestPath(const Location& from, const Location& to);
 
