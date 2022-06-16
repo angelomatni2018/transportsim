@@ -21,7 +21,7 @@ struct SteinerState {
   std::unique_ptr<Network> connectedNetwork;
   VisitSpawner spawner;
   StructureDrawer structureDrawer;
-  std::unordered_set<Path*> paths;
+  PtrSet<Path> paths;
   int nextPathId = 0;
 
   SteinerState(double visitSpawnRate) : spawner{visitSpawnRate} {}

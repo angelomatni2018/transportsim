@@ -13,7 +13,7 @@ namespace world {
 
 class Network {
 private:
-  Pool<WorldElement> elementPool;
+  PtrVec<WorldElement> elementPool;
   std::vector<Building*> buildings;
   std::vector<Roadway*> roads;
 
@@ -39,7 +39,7 @@ public:
 
   template <class DerivedElement>
   DerivedElement* Add(DerivedElement&& el) {
-    WorldElement* elPtr = elementPool.With<DerivedElement>(std::move(el));
+    WorldElement* elPtr = elementPool.Add<DerivedElement>(std::move(el));
     if (el.IsType(Building::Type)) {
       addBuilding(static_cast<Building*>(elPtr));
     } else if (el.IsType(Roadway::Type)) {
@@ -51,7 +51,6 @@ public:
     return static_cast<DerivedElement*>(elPtr);
   }
 
-  // WorldElement* Add(WorldElement&& el);
   WorldElement* AddCopyOf(const WorldElement* el);
   void Clear();
 

@@ -15,7 +15,7 @@ private:
   VisitSpawner spawner;
   const double spawnInterval;
   const double vehicleSecondsPerUnit;
-  std::unordered_set<Path*> activeVehiclePaths;
+  PtrSet<Path> activeVehiclePaths;
   std::unordered_map<Path*, std::pair<CommercialBuilding*, ResidentialBuilding*>> pathToVisit;
   int nextPathId = 0;
 

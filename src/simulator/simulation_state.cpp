@@ -38,17 +38,17 @@ StateChange SimulationState::Simulate(const FrameData& frameData, const sf::Rend
     auto res = visit.second;
 
     const int FRAMES_PER_TILE = 4;
-    auto path = new Path();
+    auto path = this->paths.Add(Path());
     if (VehiclePathConstructor::Construct(path, this->network, nextPathId++, visit, frameData.frameNumber, FRAMES_PER_TILE)) {
       spdlog::trace("Path spawned: res at {} to comm at {} (path length {})", to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()),
-                    path->orderedPathEvents.size());
-      this->paths.emplace(path);
+                    path->orderedPathEvents->size());
     } else {
       spdlog::trace("No path spawned: res at {} to comm at {}", to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()));
+      this->paths.Remove(path);
     }
   }
   if (visits.size() > 0) {
-    PathReconciler().Reconcile(paths);
+    PathReconciler().Reconcile(paths.Get());
   }
 
   auto spawned = this->structureDrawer.TrackMouseToSpawn(frameData, window, inputManager, network);

@@ -26,8 +26,8 @@ void SteinerPointSearchByClustering::addRoadsFromMst(MinimumSpanningTree& mst, N
 
 std::unique_ptr<Network> SteinerPointSearchByClustering::ConnectStructures(const Network& network) {
   auto connectedNetwork = std::make_unique<Network>();
-  Pool<Point> pp;
-  Pool<PointToPosition> ptp;
+  PtrVec<Point> pp;
+  PtrVec<PointToPosition> ptp;
 
   int numBuildings = 0;
   std::unordered_set<Location, pair_hash> buildingLocs;
@@ -46,10 +46,10 @@ std::unique_ptr<Network> SteinerPointSearchByClustering::ConnectStructures(const
     std::unordered_set<PointToPosition*> points;
     std::unordered_map<const Point*, PointToPosition*> pointMap;
     for (auto& cluster : km.Get()) {
-      PointToPosition* pos = ptp.With(PointToPosition(pp.With(Point(cluster->centroid))));
+      PointToPosition* pos = ptp.Add(PointToPosition(pp.Add(Point(cluster->centroid))));
       for (auto loc : cluster->members) {
         // TODO: Solve mst once to determine adjacent cluster members to add
-        pos->clusterPoints.emplace(pp.With(Point(loc)));
+        pos->clusterPoints.emplace(pp.Add(Point(loc)));
       }
       points.emplace(pos);
       pointMap[pos->pointToPositionAtMedian] = pos;

@@ -26,7 +26,7 @@ public:
 class NetworkGraph {
 protected:
   std::unordered_map<WorldElement*, std::unordered_map<WorldElement*, NetworkEdge*>> connections;
-  Pool<NetworkEdge> pool;
+  PtrVec<NetworkEdge> pool;
 
   NetworkEdge* addUndirected(NetworkEdge* edge) {
     auto [one, other] = edge->Nodes();
@@ -37,7 +37,7 @@ protected:
 
 public:
   NetworkEdge* AddUndirected(WorldElement* one, WorldElement* other, int cost) {
-    auto edge = pool.With(NetworkEdge(one, other, cost));
+    auto edge = pool.Add(NetworkEdge(one, other, cost));
     return addUndirected(edge);
   }
 

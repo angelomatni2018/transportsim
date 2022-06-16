@@ -21,7 +21,7 @@ public:
   RoadCandidateNetworkGraph(const Network& network);
 
   NetworkEdge* AddUndirected(WorldElement* one, WorldElement* other, std::vector<Location> roads) {
-    return addUndirected(pool.With(CandidateNetworkEdge(one, other, roads)));
+    return addUndirected(pool.Add(CandidateNetworkEdge(one, other, roads)));
   }
 };
 

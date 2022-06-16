@@ -4,7 +4,7 @@
 using namespace world;
 
 void PathEvent::Delay(double amount) {
-  for (int i = index; i < path->orderedPathEvents.size(); ++i) {
+  for (int i = index; i < path->orderedPathEvents->size(); ++i) {
     path->orderedPathEvents[i]->timeAtPoint += amount;
   }
 }
@@ -68,11 +68,11 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
       return false;
     }
 
-    for (auto pathEvent : path->orderedPathEvents) {
+    for (auto pathEvent : path->orderedPathEvents.Get()) {
       pathEventToLastTimeBlocked[pathEvent] = -1;
     }
 
-    if (path->orderedPathEvents.size() > 1) {
+    if (path->orderedPathEvents->size() > 1) {
       eventQueue.push(path->orderedPathEvents[1]);
     } else {
       --remainingToReconcile;
@@ -95,7 +95,7 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
       PathEvent* longestBlocker = nullptr;
       for (auto blockingEvent : blockers) {
         // The blocking event has nowhere next to go
-        if (blockingEvent->path->orderedPathEvents.size() == blockingEvent->index + 1) {
+        if (blockingEvent->path->orderedPathEvents->size() == blockingEvent->index + 1) {
           spdlog::debug("PathReconciler: event {} has nowhere to go and is blocking event {}", to_string(*blockingEvent), to_string(*pathEvent));
           return false;
         }
@@ -122,7 +122,7 @@ bool PathReconciler::Reconcile(const std::unordered_set<Path*> paths) {
     untrackLocationsOfEvent(prevEvent);
     trackLocationsOfEvent(pathEvent);
 
-    if (pathEvent->path->orderedPathEvents.size() > pathEvent->index + 1) {
+    if (pathEvent->path->orderedPathEvents->size() > pathEvent->index + 1) {
       auto nextEvent = pathEvent->path->orderedPathEvents[pathEvent->index + 1];
       eventQueue.push(nextEvent);
     } else {

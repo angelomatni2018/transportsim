@@ -9,8 +9,8 @@
 using namespace world;
 
 bool ThreePoints() {
-  Pool<Point> p;
-  auto points = std::unordered_set<Point*>{p.With(Point(0.f, -1.f)), p.With(Point(0.f, 1.f)), p.With(Point(1.f, 0.f))};
+  PtrVec<Point> p;
+  auto points = std::unordered_set<Point*>{p.Add(Point(0.f, -1.f)), p.Add(Point(0.f, 1.f)), p.Add(Point(1.f, 0.f))};
   auto median = GeometricMedian::Median(points);
 
   // Median will form a 60 angle between x axis and line to 0,1 (and likewise for 0,-1)
@@ -29,17 +29,17 @@ TEST_CASE("Geometric median for 3 points", "[]") {
 }
 
 bool FourTerminalsConnectedWithTwoSteinerPoints() {
-  Pool<Point> p;
-  auto steiner1Expected = p.With(Point{0.3, 0.5});
-  auto steiner2Expected = p.With(Point{1.0, 0.5});
-  auto steiner1Actual = p.With(Point{0, 0.5});
-  auto steiner2Actual = p.With(Point{1.3, 0.5});
-  auto cluster1 = {p.With(Point{0, 0}), p.With(Point{0, 1}), steiner2Actual};
-  auto cluster2 = {p.With(Point{1.3, 0}), p.With(Point{1.3, 1}), steiner1Actual};
+  PtrVec<Point> p;
+  auto steiner1Expected = p.Add(Point{0.3, 0.5});
+  auto steiner2Expected = p.Add(Point{1.0, 0.5});
+  auto steiner1Actual = p.Add(Point{0, 0.5});
+  auto steiner2Actual = p.Add(Point{1.3, 0.5});
+  auto cluster1 = {p.Add(Point{0, 0}), p.Add(Point{0, 1}), steiner2Actual};
+  auto cluster2 = {p.Add(Point{1.3, 0}), p.Add(Point{1.3, 1}), steiner1Actual};
 
-  Pool<PointToPosition> ptp;
+  PtrVec<PointToPosition> ptp;
   auto points =
-      std::unordered_set<PointToPosition*>{ptp.With(PointToPosition{cluster1, steiner1Actual}), ptp.With(PointToPosition{cluster2, steiner2Actual})};
+      std::unordered_set<PointToPosition*>{ptp.Add(PointToPosition{cluster1, steiner1Actual}), ptp.Add(PointToPosition{cluster2, steiner2Actual})};
   GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(points);
   if (euclidianDistance(*steiner1Actual, *steiner1Expected) > 0.1) {
     spdlog::trace("FourTerminalsConnectedWithTwoSteinerPoints: steiner 1 expected {} got {}", to_string(*steiner1Expected),

@@ -11,7 +11,7 @@ namespace world {
 class RenderState {
 private:
   sf::Texture squareTexture;
-  Pool<sf::Sprite> sPool;
+  PtrVec<sf::Sprite> sPool;
   std::unordered_map<WorldElement*, sf::Sprite*> elementSprites;
 
   void drawRoadSegment(sf::RenderWindow& window, RoadSegment* segment);

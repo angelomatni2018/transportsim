@@ -26,14 +26,8 @@ KMeans::KMeans(const std::unordered_set<Location, pair_hash> locs, int c) : numC
       p = p + Point{loc};
     }
     p = Point{p.first / locs.size(), p.second / locs.size()};
-    clusters.emplace(new Cluster(locs, p));
+    clusters.Add(Cluster(locs, p));
   }
-}
-
-KMeans::~KMeans() {
-  for (auto cluster : clusters)
-    delete cluster;
-  clusters.clear();
 }
 
 void KMeans::computeGroupingFromClusterMapping(Grouping& g) {
@@ -52,8 +46,8 @@ void KMeans::computeGroupingFromClusterMapping(Grouping& g) {
   }
 }
 
-std::unordered_set<Cluster*> KMeans::Get() {
-  return this->clusters;
+const std::unordered_set<Cluster*>& KMeans::Get() {
+  return this->clusters.Get();
 }
 
 bool KMeans::assignPointsToClosestCluster() {

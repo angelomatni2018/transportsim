@@ -68,23 +68,6 @@ Roadway* Network::addRoadway(Roadway* roadway) {
   return roadway;
 }
 
-// WorldElement* Network::Add(WorldElement&& el) {
-//   if (el.GetType() == Building::Type) {
-//     return addBuilding(elementPool.With<Building>(static_cast<Building&&>(el)));
-//   }
-//   if (el.GetType() == CommercialBuilding::Type) {
-//     return addBuilding(elementPool.With<CommercialBuilding>(static_cast<CommercialBuilding&&>(el)));
-//   }
-//   if (el.GetType() == ResidentialBuilding::Type) {
-//     return addBuilding(elementPool.With<ResidentialBuilding>(static_cast<ResidentialBuilding&&>(el)));
-//   }
-//   if (el.GetType() == RoadSegment::Type) {
-//     return addRoadway(elementPool.With<RoadSegment>(static_cast<RoadSegment&&>(el)));
-//   }
-//   spdlog::error("Network does not support WorldElement of type {}", el.GetType());
-//   abort();
-// }
-
 WorldElement* Network::AddCopyOf(const WorldElement* elToCopy) {
   auto el = elToCopy->Copy(elementPool);
   if (el->IsType(Building::Type)) {

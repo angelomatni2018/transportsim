@@ -15,7 +15,7 @@ void draw(sf::RenderWindow& window, sf::Sprite* sprite) {
   /*
     What is this monstrosity of a transformation you may ask?
     It reflects about the x-axis, bringing the origin from being at the top left to being at the bottom left
-    A simple (y_new -> MAX - y_old) transformation isn't enough BECAUSE sprite pixels are drawn from the top left.
+    A simple (y_next -> MAX - y_prev) transformation isn't enough BECAUSE sprite pixels are drawn from the top left.
     We need to additionally offset y_old by the y-dimensional size of the scaled sprite.
   */
   auto scaledYDimSizeOfSprite = sprite->getScale().y * sprite->getTexture()->getSize().y;
@@ -103,7 +103,7 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
     elementSprites.erase(element);
   }
   for (auto element : stateChange.adds) {
-    sf::Sprite* sprite = sPool.With(sf::Sprite(this->squareTexture));
+    sf::Sprite* sprite = sPool.Add(sf::Sprite(this->squareTexture));
     auto [x, y] = element->PrimaryLocation();
     sprite->setScale(Vector2(SQUARE_SCALE_FACTOR));
     sprite->setPosition(sf::Vector2f(centerAndAlignStructureCoord(x), centerAndAlignStructureCoord(y)));
@@ -161,8 +161,8 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
   };
 
   std::unordered_set<Path*> toErase;
-  for (auto path : *stateChange.paths) {
-    if (path->orderedPathEvents.size() <= 1) {
+  for (auto path : stateChange.paths->Get()) {
+    if (path->orderedPathEvents->size() <= 1) {
       toErase.emplace(path);
       continue;
     }
@@ -175,7 +175,6 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
     }
   }
   for (auto path : toErase) {
-    stateChange.paths->erase(path);
-    delete path;
+    stateChange.paths->Remove(path);
   }
 }

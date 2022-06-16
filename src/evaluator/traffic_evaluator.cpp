@@ -20,21 +20,20 @@ bool TrafficEvaluator::canContinueToSpawn(double secondsElapsed) {
   }
 
   for (auto& [comm, res] : spawns) {
-    auto path = new Path();
+    auto path = this->activeVehiclePaths.Add(Path());
     if (!VehiclePathConstructor::Construct(path, this->network, nextPathId++, {comm, res}, secondsElapsed, vehicleSecondsPerUnit)) {
       spdlog::error("TrafficEvaluator failed to path; this should not happen");
       return false;
     }
-    this->activeVehiclePaths.emplace(path);
     this->pathToVisit[path] = {comm, res};
-    auto pathLength = path->orderedPathEvents.size();
+    auto pathLength = path->orderedPathEvents->size();
     // spdlog::trace("Path spawned: res at {} to comm at {} (path length {}) time range: {} to {}",
     //     to_string(res->PrimaryLocation()), to_string(comm->PrimaryLocation()), pathLength,
     //     path->orderedPathEvents[0]->timeAtPoint, path->orderedPathEvents.back()->timeAtPoint);
   }
 
   if (spawns.size() > 0) {
-    if (!PathReconciler().Reconcile(this->activeVehiclePaths)) {
+    if (!PathReconciler().Reconcile(this->activeVehiclePaths.Get())) {
       spdlog::error("TrafficEvaluator failed to reconcile; this should not happen");
       return false;
     }
@@ -50,20 +49,19 @@ double TrafficEvaluator::TimeBeforeOverload(int maxSeconds) {
       //     to_string(res->PrimaryLocation()), toCleanup->orderedPathEvents.back()->timeAtPoint);
       comm->RemoveOccupant();
       res->RemoveOccupant();
-      this->activeVehiclePaths.erase(toCleanup);
       this->pathToVisit.erase(toCleanup);
-      delete toCleanup;
+      this->activeVehiclePaths.Remove(toCleanup);
     }
   };
 
-  this->activeVehiclePaths.clear();
+  this->activeVehiclePaths = PtrSet<Path>();
   double secondsElapsed = 0.0;
   while (secondsElapsed < maxSeconds && canContinueToSpawn(secondsElapsed)) {
     secondsElapsed += spawnInterval;
 
     std::unordered_set<Path*> deletes;
-    for (auto path : this->activeVehiclePaths) {
-      if (ltEqualish(path->orderedPathEvents.back()->timeAtPoint, secondsElapsed)) {
+    for (auto path : this->activeVehiclePaths.Get()) {
+      if (ltEqualish(path->orderedPathEvents->back()->timeAtPoint, secondsElapsed)) {
         deletes.emplace(path);
       }
     }
@@ -73,6 +71,6 @@ double TrafficEvaluator::TimeBeforeOverload(int maxSeconds) {
   if (equalish(secondsElapsed, maxSeconds)) {
     spdlog::debug("TrafficEvaluator::TimeBeforeOverload reached max time threshold of {} seconds", maxSeconds);
   }
-  cleanupPaths(std::unordered_set<Path*>(this->activeVehiclePaths));
+  cleanupPaths(std::unordered_set<Path*>(this->activeVehiclePaths.Get()));
   return secondsElapsed;
 }

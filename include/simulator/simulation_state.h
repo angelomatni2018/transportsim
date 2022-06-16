@@ -13,14 +13,14 @@ namespace world {
 
 struct StateChange {
   std::vector<WorldElement*> adds, removes;
-  std::unordered_set<Path*>* paths;
+  PtrSet<Path>* paths;
 };
 
 struct SimulationState {
   Network network;
   VisitSpawner spawner;
   StructureDrawer structureDrawer;
-  std::unordered_set<Path*> paths;
+  PtrSet<Path> paths;
   int nextPathId = 0;
 
   SimulationState(double visitSpawnRate) : spawner{visitSpawnRate} {}

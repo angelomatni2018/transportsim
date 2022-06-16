@@ -46,29 +46,22 @@ inline std::string to_string(const PathEvent& v) {
 
 class Path {
 public:
-  std::vector<PathEvent*> orderedPathEvents;
+  PtrVec<PathEvent> orderedPathEvents;
 
   PathEvent* Append(std::vector<Location> locs, double timeAtPoint) {
-    auto event = new PathEvent(this, orderedPathEvents.size(), locs, timeAtPoint);
-    orderedPathEvents.push_back(event);
-    return event;
+    return orderedPathEvents.Add(PathEvent(this, orderedPathEvents->size(), locs, timeAtPoint));
   }
 
   void Remove(int idx) {
-    for (int i = idx + 1; i < orderedPathEvents.size(); ++i) {
+    for (int i = idx + 1; i < orderedPathEvents->size(); ++i) {
       --(orderedPathEvents[i]->index);
     }
-    orderedPathEvents.erase(orderedPathEvents.begin() + idx);
-  }
-
-  ~Path() {
-    for (auto event : orderedPathEvents)
-      delete event;
+    orderedPathEvents.Remove(idx);
   }
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Path& path) {
-  for (auto pathEvent : path.orderedPathEvents) {
+  for (auto pathEvent : path.orderedPathEvents.Get()) {
     os << *pathEvent << "; ";
   }
   return os;

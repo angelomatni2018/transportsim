@@ -11,7 +11,7 @@ class KMeans {
 private:
   int numClusters;
   std::unordered_map<Location, int, pair_hash> locToCluster;
-  std::unordered_set<Cluster*> clusters;
+  PtrSet<Cluster> clusters;
 
   struct Grouping {
     std::vector<int> numMembers;
@@ -25,9 +25,8 @@ private:
 
 public:
   KMeans(const std::unordered_set<Location, pair_hash> locs, int c);
-  ~KMeans();
 
-  std::unordered_set<Cluster*> Get();
+  const std::unordered_set<Cluster*>& Get();
 };
 
 struct Cluster {
