@@ -29,6 +29,8 @@ private:
 public:
   Network();
 
+  static Location AlignLocation(Location unalignedLoc);
+
   const std::unordered_map<Location, WorldElement*, pair_hash>& SpatialMap() const;
   const int Size() const;
   const std::vector<Building*>& Buildings() const;

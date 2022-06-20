@@ -18,7 +18,7 @@ public:
   static std::unique_ptr<Network> ConnectStructures(const Network& network);
 
 private:
-  static void addRoadsFromMst(MinimumSpanningTree& mst, Network& network);
+  static void addRoadsTo(const Network& inputNetwork, Network& outputNetwork);
 };
 
 } // namespace world

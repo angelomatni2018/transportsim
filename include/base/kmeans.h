@@ -23,6 +23,8 @@ private:
 
   bool assignPointsToClosestCluster();
 
+  static constexpr int MAX_ITERATIONS = 100000;
+
 public:
   KMeans(const std::unordered_set<Location, pair_hash> locs, int c);
 

@@ -12,8 +12,21 @@ namespace world {
 
 class CandidateNetworkEdge : public NetworkEdge {
 public:
+  // TODO: Misleading name; The locations of the nodes are included in this list
   std::vector<Location> Roads;
   CandidateNetworkEdge(WorldElement* x, WorldElement* y, std::vector<Location> roadPath) : NetworkEdge{x, y, int(roadPath.size())}, Roads{roadPath} {}
+
+  int GetIdxOfRoadwayInto(WorldElement* node) const {
+    if (Roads.size() < 3)
+      return -1;
+    if (node == x) {
+      return 1;
+    } else if (node == y) {
+      return Roads.size() - 2;
+    } else {
+      return -1;
+    }
+  }
 };
 
 class RoadCandidateNetworkGraph : public NetworkGraph {

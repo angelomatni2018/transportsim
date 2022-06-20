@@ -8,16 +8,17 @@ using namespace world;
 
 Network::Network() : buildings{}, spatialMap{} {};
 
+Location Network::AlignLocation(Location unalignedLoc) {
+  auto& [x, y] = unalignedLoc;
+  return Location{x - x % STRUCTURE_BASE_SIZE_UNIT, y - y % STRUCTURE_BASE_SIZE_UNIT};
+}
+
 bool Network::HasStructureAt(Location loc) const {
-  auto& [x, y] = loc;
-  auto alignedLoc = Location{x - x % STRUCTURE_BASE_SIZE_UNIT, y - y % STRUCTURE_BASE_SIZE_UNIT};
-  return spatialMap.find(alignedLoc) != spatialMap.end();
+  return spatialMap.find(Network::AlignLocation(loc)) != spatialMap.end();
 }
 
 const WorldElement* Network::StructureAt(Location loc) const {
-  auto& [x, y] = loc;
-  auto alignedLoc = Location{x - x % STRUCTURE_BASE_SIZE_UNIT, y - y % STRUCTURE_BASE_SIZE_UNIT};
-  return spatialMap.at(alignedLoc);
+  return spatialMap.at(Network::AlignLocation(loc));
 }
 
 const std::unordered_map<Location, WorldElement*, pair_hash>& Network::SpatialMap() const {
@@ -108,7 +109,8 @@ void Network::expandBounds(Location outermost) {
 }
 
 bool Network::IsAdjacentAndConnected(const WorldElement* from, const WorldElement* to) const {
-  auto heading = from->PrimaryLocation() - to->PrimaryLocation();
+  auto heading = to->PrimaryLocation() - from->PrimaryLocation();
+  // spdlog::trace("heading from {} to {}: {}", to_string(from->PrimaryLocation()), to_string(to->PrimaryLocation()), to_string(heading));
   if (heading.first == 0 && heading.second == 0)
     return false;
   if (abs(heading.first) > STRUCTURE_BASE_SIZE_UNIT || abs(heading.second) > STRUCTURE_BASE_SIZE_UNIT)
@@ -120,5 +122,6 @@ bool Network::IsAdjacentAndConnected(const WorldElement* from, const WorldElemen
   auto toMask = ALL_DIRECTIONS;
   if (to->IsType(RoadSegment::Type))
     toMask = static_cast<const RoadSegment*>(to)->DirectionsMask();
+  // spdlog::trace("masks from/to {} {} : {}", fromMask, toMask, Roadway::CanDirectionsConnect(fromMask, toMask, heading));
   return Roadway::CanDirectionsConnect(fromMask, toMask, heading);
 }

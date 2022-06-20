@@ -8,11 +8,18 @@ Point GeometricMedian::Median(std::unordered_set<Point*>& cluster, float thresho
   Point newMedian;
   positionAtMean(cluster, newMedian);
   Point oldMedian = Point{INFINITY, INFINITY};
-  while (euclidianDistance(oldMedian, newMedian) > threshold) {
+  int iters = 0;
+  while (++iters < MAX_ITERATIONS && euclidianDistance(oldMedian, newMedian) > threshold) {
     oldMedian = newMedian;
     newMedian = weiszfeldStep(oldMedian, cluster);
     spdlog::trace("{} -> {}", to_string(oldMedian), to_string(newMedian));
   }
+
+  if (iters == MAX_ITERATIONS) {
+    spdlog::error("GeometricMedian::Median did not converge");
+    abort();
+  }
+
   return newMedian;
 }
 
@@ -22,7 +29,8 @@ void GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(std::unordered_s
   }
 
   double maxAdjustment = INFINITY;
-  while (maxAdjustment > threshold) {
+  int iters = 0;
+  while (++iters < MAX_ITERATIONS && maxAdjustment > threshold) {
     // Compute adjustments
     maxAdjustment = 0.0;
     for (auto pointToPosition : pointsToPosition) {
@@ -42,6 +50,11 @@ void GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(std::unordered_s
       pointToPosition->pointToPositionAtMedian->first = pointToPosition->proposedAdjustedPosition.first;
       pointToPosition->pointToPositionAtMedian->second = pointToPosition->proposedAdjustedPosition.second;
     }
+  }
+
+  if (iters == MAX_ITERATIONS) {
+    spdlog::error("GeometricMedian::PositionAtMediansToMinimizeSumOfDistances did not converge");
+    abort();
   }
 }
 

@@ -1,1 +1,30 @@
+#!/bin/bash
+
 find . -iname *.h -o -iname *.cpp | xargs -P 8 clang-format -i
+
+find_cpp_source_text () {
+  TEXT=$1
+  excludes="base/utilities"
+  grep -r --include="*.h" --include="*.cpp" "$TEXT" include/ src/ | grep -v $excludes
+}
+
+RED="\033[0;31m"
+NC='\033[0m'
+news=$(find_cpp_source_text "new ")
+dels=$(find_cpp_source_text "delete ")
+delarrs=$(find_cpp_source_text "delete\[\] ")
+if [[ ! -z "${news}${dels}${delarrs}" ]]; then
+  printf "\n${RED}PRE-COMMIT ERROR:${NC} No new/delete allowed; use the following instead:\n"
+  echo "  - Single pointers: std::unique_ptr/std::shared_ptr"
+  echo "  - Collections of pointers: PtrVec/PtrSet in utilities.h"
+  if [[ ! -z $news ]]; then
+    echo $news
+  fi
+  if [[ ! -z $dels ]]; then
+    echo $dels
+  fi
+  if [[ ! -z $delarrs ]]; then
+    echo $delarrs
+  fi
+  echo ""
+fi

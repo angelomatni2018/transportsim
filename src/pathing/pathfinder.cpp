@@ -82,6 +82,7 @@ bool Pathfinder::isValidNeighborToTraverse(const Network& network, Location curr
   return true;
 }
 
+// Returns path between start and end, inclusive at both ends
 std::vector<Location> Pathfinder::Solve(const Network& network, Location start, Location end) {
   // std::cout << "Solving: " << start << " to " << end << "\n";
   std::unordered_map<Location, int, pair_hash> guesses = {{start, heuristic(start, end)}};
@@ -90,15 +91,18 @@ std::vector<Location> Pathfinder::Solve(const Network& network, Location start, 
   std::priority_queue<WeightedLocation, std::vector<WeightedLocation>, WeightedLocCmp> frontier;
   frontier.push(WeightedLocation(guesses[start], start));
 
-  int numChecked = 0;
-  while (!frontier.empty()) {
-    numChecked++;
+  std::unordered_map<int, int> radiusToTilesCheckedMap;
+  // We count the end as already having been checked for the boundary condition below
+  radiusToTilesCheckedMap[0] = 1;
+
+  int iters = 0;
+  while (++iters < MAX_ITERATIONS && !frontier.empty()) {
     auto weightLocPair = frontier.top();
     auto weight = weightLocPair.first;
     auto loc = weightLocPair.second;
     frontier.pop();
-    // if (loc == end) std::cout << "Num checked: " << numChecked << " " << weight << "\n";
-    // std::cout << "Num checked: " << numChecked << " " << weight << " " << loc << "\n";
+    // if (loc == end) std::cout << "Num checked: " << iters << " " << weight << "\n";
+    // std::cout << "Num checked: " << iters << " " << weight << " " << loc << "\n";
     if (loc == end)
       return retrace(start, end, connections);
     for (auto neighbor : neighbors(network, loc)) {
@@ -110,6 +114,14 @@ std::vector<Location> Pathfinder::Solve(const Network& network, Location start, 
         return retrace(start, end, connections);
       }
 
+      // If for two adjacent radii, every tile at those radii around the end has already been checked once, then the end cannot be reached
+      int radius = manhattanDistance(neighbor, end) / STRUCTURE_BASE_SIZE_UNIT; // Neighbor != end, radius > 0
+      auto isChecked = [&radiusToTilesCheckedMap](int radius) { return radiusToTilesCheckedMap[radius] >= radius * 4; };
+      if (isChecked(radius) && (isChecked(radius - 1) || isChecked(radius + 1))) {
+        return {};
+      }
+      ++(radiusToTilesCheckedMap[radius]);
+
       auto nextscore = scores[loc] + actualCost(network, neighbor);
       if (scores.find(neighbor) != scores.end() && scores.at(neighbor) <= nextscore)
         continue;
@@ -119,8 +131,17 @@ std::vector<Location> Pathfinder::Solve(const Network& network, Location start, 
       // Determine if it is feasible to remove all previous pushed neighbor entries in the frontier
       auto next = WeightedLocation(heuristic(neighbor, end), neighbor);
       frontier.push(next);
-      // std::cout << "Pushing: " << next.first << " " << next.second << " Size: " << frontier.size() << "\n";
+      // std::cout << "Pushing: " << next.first << " " << next.second << " Weight: " << nextscore << " Size: " << frontier.size() << "\n";
     }
+  }
+
+  if (iters == MAX_ITERATIONS) {
+    spdlog::error("Pathfinder::Solve did not converge");
+    spdlog::error("{} to {}", to_string(start), to_string(end));
+    for (auto loc : network.SpatialMap()) {
+      spdlog::error("Structure {}", to_string(loc));
+    }
+    abort();
   }
 
   // std::cout << "Failed to solve: " << start << " to " << end << "\n";

@@ -12,7 +12,8 @@ RoadCandidateNetworkGraph::RoadCandidateNetworkGraph(const Network& network) : N
       if (Edge(el, otherEl) != nullptr)
         continue;
       auto candidatePath = pathfinder.Solve(network, el->PrimaryLocation(), otherEl->PrimaryLocation());
-      if (candidatePath.size() > 0) {
+      // We require buildings to have at least one road in between them
+      if (candidatePath.size() > 2) {
         AddUndirected(el, otherEl, candidatePath);
         paths++;
         // spdlog::trace("Path found between {} and {} of length {}", to_string(el->PrimaryLocation()), to_string(otherEl->PrimaryLocation()),

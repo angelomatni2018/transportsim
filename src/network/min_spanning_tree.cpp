@@ -13,7 +13,7 @@ MinimumSpanningTree::MinimumSpanningTree(const NetworkGraph& graph, std::functio
   prim(graph);
 }
 
-const std::unordered_set<const NetworkEdge*>& MinimumSpanningTree::MstEdges() {
+const std::unordered_set<const NetworkEdge*>& MinimumSpanningTree::MstEdges() const {
   return mstEdges;
 }
 

@@ -11,8 +11,13 @@ KMeans::KMeans(const std::unordered_set<Location, pair_hash> locs, int c) : numC
   }
   computeGroupingFromClusterMapping(grouping);
 
-  while (assignPointsToClosestCluster()) {
+  int iters = 0;
+  while (++iters < MAX_ITERATIONS && assignPointsToClosestCluster()) {
     computeGroupingFromClusterMapping(grouping);
+  }
+  if (iters == MAX_ITERATIONS) {
+    spdlog::error("KMeans did not converge");
+    abort();
   }
 
   std::vector<std::unordered_set<Location, pair_hash>> clusterLocs;

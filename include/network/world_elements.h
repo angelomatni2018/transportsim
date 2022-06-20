@@ -154,6 +154,7 @@ public:
 
   virtual std::vector<Location> offsetsThrough(Location from, Location to) = 0;
 
+  static std::string MaskToString(uint8_t mask);
   uint8_t DirectionTowardsLocation(Location targetLocation) const;
   static uint8_t DirectionWhenHeading(Heading heading);
   uint8_t DirectionsMask() const { return directionsMask; }

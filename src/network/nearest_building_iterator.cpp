@@ -17,7 +17,7 @@ NearestBuildingIterator::NearestBuildingIterator(const Network& network, const B
 
 const Building* NearestBuildingIterator::Next() {
   while (nearests.empty() && !frontier.empty()) {
-    int iters = 10;
+    int iters = 1000000;
     while (--iters >= 0 && !frontier.empty()) {
       auto roadway = frontier.front();
       frontier.pop();

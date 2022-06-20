@@ -12,7 +12,7 @@ public:
   MinimumSpanningTree(const NetworkGraph& graph);
   MinimumSpanningTree(const NetworkGraph& graph, std::function<bool(const NetworkEdge* a, const NetworkEdge* b)> comparator);
 
-  const std::unordered_set<const NetworkEdge*>& MstEdges();
+  const std::unordered_set<const NetworkEdge*>& MstEdges() const;
 
 private:
   void prim(const NetworkGraph& graph);

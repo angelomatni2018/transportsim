@@ -69,6 +69,16 @@ std::string to_string(const std::pair<T, U>& v) {
   return strm.str();
 }
 
+template <typename T>
+std::string to_string(const std::vector<T>& vs) {
+  std::stringstream strm;
+  for (int i = 0; i < vs.size() - 1; ++i)
+    strm << vs[i] << "  ";
+  if (vs.size() > 0)
+    strm << vs.back();
+  return strm.str();
+}
+
 typedef std::pair<int, int> Location;
 typedef std::pair<float, float> Point;
 // A delta/vector between two locations:
@@ -83,7 +93,7 @@ T manhattanDistance(const std::pair<T, T>& pair1, const std::pair<T, T>& pair2) 
 }
 
 template <typename T>
-T euclidianDistance(const std::pair<T, T>& pair1, const std::pair<T, T>& pair2) {
+float euclidianDistance(const std::pair<T, T>& pair1, const std::pair<T, T>& pair2) {
   auto x = (pair1.first - pair2.first);
   auto y = (pair1.second - pair2.second);
   return sqrt(x * x + y * y);

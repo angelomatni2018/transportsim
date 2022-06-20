@@ -28,6 +28,8 @@ protected:
 
   std::vector<Location> retrace(Location start, Location end, std::unordered_map<Location, Location, pair_hash> connections);
 
+  static constexpr int MAX_ITERATIONS = 1000000;
+
 public:
   // TODO: Move this to a eager-loading pathfinder derived class:
   // const std::vector<Location>& ShortestPath(const Location& from, const Location& to);

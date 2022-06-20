@@ -87,6 +87,14 @@ int ResidentialBuilding::OccupancyCapacity() {
 
 Roadway::Roadway(std::pair<int, int> size, Location loc) : SquareWorldElement{size, loc} {}
 
+std::string Roadway::MaskToString(uint8_t mask) {
+  std::string s;
+  s = s + (mask & 1 ? "1," : "") + (mask & 2 ? "2," : "") + (mask & 4 ? "4," : "") + (mask & 8 ? "8," : "") + (mask & 16 ? "16," : "") +
+      (mask & 32 ? "32," : "") + (mask & 64 ? "64," : "") + (mask & 128 ? "128," : "");
+  s.erase(s.end() - 1);
+  return s;
+}
+
 uint8_t Roadway::DirectionTowardsLocation(Location targetLocation) const {
   return DirectionWhenHeading(targetLocation - this->primaryLocation);
 }
@@ -133,11 +141,14 @@ bool Roadway::CanDirectionsConnect(uint8_t incomingMask, uint8_t outgoingMask, H
   // Rotating by 45 degrees clockwise from North -> NorthEast -> East -> ... -> West -> NorthWest
   // is done by left shifting one bit. From NorthWest -> North requires the left shifting to be circular bit shifting.
   // To reverse a direction (180 degrees = 45 * 4), we do a circular bit shift of 4 bits.
-  auto circularLsh = [](uint8_t mask, int shift) -> uint8_t { return mask << shift | mask >> (8 - shift); };
+  auto circularLsh = [](uint8_t mask, int shift) -> uint8_t { return (mask << shift) | (mask >> (8 - shift)); };
   auto reverseDirections = [circularLsh](uint8_t mask) -> uint8_t { return circularLsh(mask, 4); };
 
   auto revOutMask = reverseDirections(outgoingMask);
   auto headingMask = DirectionWhenHeading(heading);
+  // spdlog::trace("Incoming {}    Outgoing {}    RevOut {}    Heading {}", incomingMask, outgoingMask, revOutMask, headingMask);
+  // spdlog::trace("Incoming {}    Outgoing {}    RevOut {}    Heading {}", MaskToString(incomingMask), MaskToString(outgoingMask),
+  // MaskToString(revOutMask), MaskToString(headingMask));
   if (headingMask == 0) {
     spdlog::debug("Roadway::CanDirectionsConnect invalid heading provided: {}", to_string(heading));
     return false;
