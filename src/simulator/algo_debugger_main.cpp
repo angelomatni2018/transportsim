@@ -41,8 +41,8 @@ int main() {
 
   auto fontPath = "assets/times-new-roman.ttf";
   if (!font.loadFromFile(fontPath)) {
-    spdlog::error("Failed to load {}", fontPath);
-    abort();
+    spdlog::trace("Failed to load {}", fontPath);
+    throw "Failed to load font";
   }
 
   sf::Text text1 = createText("Steiner tree solver v0");
@@ -92,6 +92,7 @@ int main() {
       }
     } else {
       scenes[0]();
+      inputManager.NextFrame();
       frameData.NextFrame();
     }
     window.display();

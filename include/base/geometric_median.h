@@ -31,9 +31,9 @@ public:
   static void PositionAtMediansToMinimizeSumOfDistances(std::unordered_set<PointToPosition*>& pointsToPosition, float threshold = FLOAT_EPSILON / 10);
 
 private:
-  static constexpr int MAX_ITERATIONS = 100000;
+  static constexpr int MAX_ITERATIONS = 1000000;
   static void positionAtMean(std::unordered_set<Point*>& cluster, Point& mean);
-  static Point weiszfeldStep(Point currentMedian, std::unordered_set<Point*>& cluster);
+  static Point weiszfeldStep(Point currentMedian, std::unordered_set<Point*>& cluster, float smallestDistance);
 };
 
 } // namespace world

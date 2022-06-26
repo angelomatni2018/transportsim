@@ -99,7 +99,7 @@ int main() {
     // TODO: Adapt the sleep duration so that an iteration of this while loop is as close to the target length of a frame as possible
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     frameData.NextFrame();
-    // abort();
+    inputManager.NextFrame();
   }
   return 0;
 }

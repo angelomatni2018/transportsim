@@ -22,13 +22,13 @@ unsigned int TrailingPathReconciled() {
   }
 
   if (!PathReconciler::Reconcile({&slowerPath, &fasterPath})) {
-    spdlog::error("TrailingPathReconciled: could not reconcile");
+    spdlog::trace("TrailingPathReconciled: could not reconcile");
     return false;
   }
 
   for (int i = 1; i < 9; ++i) {
     if (fasterPath.orderedPathEvents[i]->timeAtPoint != 2 * FRAMES_PER_TILE * i) {
-      spdlog::error("TrailingPathReconciled: did not correctly reconcile event {}", to_string(*fasterPath.orderedPathEvents[i]));
+      spdlog::trace("TrailingPathReconciled: did not correctly reconcile event {}", to_string(*fasterPath.orderedPathEvents[i]));
       return false;
     }
   }

@@ -5,10 +5,10 @@ using namespace world;
 
 // Pathfinder::Pathfinder() : shortestPathFromLocToLoc{} {
 // TODO: Move this to an eager-loading pathfinder derived class
-// for (auto oneLocElementPair : network.SpatialMap()) {
-//   auto from = oneLocElementPair.first;
-//   for (auto otherLocElementPair : network.SpatialMap()) {
-//     auto to = otherLocElementPair.first;
+// for (auto fromEl : network.Elements()) {
+//   auto from = fromEl->PrimaryLocation();
+//   for (auto toEl : network.Elements()) {
+//     auto to = toEl->PrimaryLocation();
 //     auto path = Solve(network, from, to);
 //     if (path.size() > 0)
 //       shortestPathFromLocToLoc[from][to] = path;
@@ -19,12 +19,12 @@ using namespace world;
 // TODO: Move this to an eager-loading pathfinder derived class
 // const std::vector<Location>& Pathfinder::ShortestPath(const Location& from, const Location& to) {
 //   if (this->shortestPathFromLocToLoc.find(from) == this->shortestPathFromLocToLoc.end()) {
-//     spdlog::error("No element at 'from' location\n");
-//     abort();
+//     spdlog::trace("No element at 'from' location\n");
+//     throw "No element at 'from' location\n";
 //   }
 //   if (this->shortestPathFromLocToLoc[from].find(to) == this->shortestPathFromLocToLoc[from].end()) {
-//     spdlog::error("No element at 'to' location\n");
-//     abort();
+//     spdlog::trace("No element at 'to' location\n");
+//     throw "No element at 'to' location\n";
 //   }
 //   return shortestPathFromLocToLoc[from][to];
 // }
@@ -136,12 +136,12 @@ std::vector<Location> Pathfinder::Solve(const Network& network, Location start, 
   }
 
   if (iters == MAX_ITERATIONS) {
-    spdlog::error("Pathfinder::Solve did not converge");
-    spdlog::error("{} to {}", to_string(start), to_string(end));
-    for (auto loc : network.SpatialMap()) {
-      spdlog::error("Structure {}", to_string(loc));
+    spdlog::trace("Pathfinder::Solve did not converge");
+    spdlog::trace("{} to {}", to_string(start), to_string(end));
+    for (auto el : network.Elements()) {
+      spdlog::trace("Structure {}", to_string(el->PrimaryLocation()));
     }
-    abort();
+    throw "Pathfinder::Solve did not converge";
   }
 
   // std::cout << "Failed to solve: " << start << " to " << end << "\n";

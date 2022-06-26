@@ -34,18 +34,18 @@ public:
 
   const Location& PrimaryLocation() const;
   virtual const std::vector<Location> AllOccupiedLocations() const {
-    spdlog::error(NOT_IMPL);
-    abort();
+    spdlog::trace(NOT_IMPL);
+    throw NOT_IMPL;
   }
 
   virtual std::string GetType() const {
-    spdlog::error(NOT_IMPL);
-    abort();
+    spdlog::trace(NOT_IMPL);
+    throw NOT_IMPL;
   }
   virtual bool IsType(const std::string& Ty) const { return false; }
   virtual WorldElement* Copy(PtrVec<WorldElement>& pool) const {
-    spdlog::error(NOT_IMPL);
-    abort();
+    spdlog::trace(NOT_IMPL);
+    throw NOT_IMPL;
   }
 
   friend class Network;
@@ -60,6 +60,7 @@ protected:
 public:
   SquareWorldElement(std::pair<int, int> size, Location primaryLoc);
 
+  const std::pair<int, int> Size() const { return {sizeX, sizeY}; }
   const std::vector<Location> AllOccupiedLocations() const override;
 };
 

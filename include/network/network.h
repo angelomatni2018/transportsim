@@ -31,8 +31,8 @@ public:
 
   static Location AlignLocation(Location unalignedLoc);
 
-  const std::unordered_map<Location, WorldElement*, pair_hash>& SpatialMap() const;
   const int Size() const;
+  const std::vector<WorldElement*>& Elements() const;
   const std::vector<Building*>& Buildings() const;
   const std::vector<Roadway*>& Roads() const;
 
@@ -47,8 +47,8 @@ public:
     } else if (el.IsType(Roadway::Type)) {
       addRoadway(static_cast<Roadway*>(elPtr));
     } else {
-      spdlog::error("Network does not support WorldElement of type {}", el.GetType());
-      abort();
+      spdlog::trace("Network does not support WorldElement of type {}", el.GetType());
+      throw "Network unsupported WorldElement type";
     }
     return static_cast<DerivedElement*>(elPtr);
   }

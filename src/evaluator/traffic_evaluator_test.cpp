@@ -20,7 +20,7 @@ bool StraightLineOverwhelmed() {
   auto check = [](TrafficEvaluator& evaluator, double expected = 100) -> bool {
     auto actual = evaluator.TimeBeforeOverload(100);
     if (!equalish(actual, expected)) {
-      spdlog::error("StraightLineOverwhelmed: time to overwhelm: expected {} actual {}", expected, actual);
+      spdlog::trace("StraightLineOverwhelmed: time to overwhelm: expected {} actual {}", expected, actual);
       return false;
     }
     return true;

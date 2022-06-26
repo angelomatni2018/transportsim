@@ -7,18 +7,15 @@
 #include "base/geometric_median.h"
 #include "base/kmeans.h"
 #include "network/min_spanning_tree.h"
-#include "pathing/vehiclepathconstructor.h"
 #include "steiner_tree_solver/road_candidate_graph.h"
+#include "steiner_tree_solver/spanning_tree_solver.h"
 #include "steiner_tree_solver/virtual_graph.h"
 
 namespace world {
 
-class SteinerPointSearchByClustering {
+class SteinerPointSearchByClustering : public SpanningTreeSolver {
 public:
   static std::unique_ptr<Network> ConnectStructures(const Network& network);
-
-private:
-  static void addRoadsTo(const Network& inputNetwork, Network& outputNetwork);
 };
 
 } // namespace world

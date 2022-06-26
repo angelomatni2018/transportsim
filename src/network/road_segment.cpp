@@ -14,16 +14,16 @@ std::vector<Location> RoadSegment::offsetsThrough(Location from, Location to) {
   auto& [selfX, selfY] = this->primaryLocation;
   auto& [toX, toY] = to;
   auto formatErr = [&](std::string errorMsg) {
-    spdlog::error("RoadSegment::offsetsThrough {}  ({}) -> ({}) -> ({})", errorMsg, to_string(from), to_string(this->primaryLocation), to_string(to));
+    spdlog::trace("RoadSegment::offsetsThrough {}  ({}) -> ({}) -> ({})", errorMsg, to_string(from), to_string(this->primaryLocation), to_string(to));
   };
 
   // if (!(fromX < selfX ^ toX < selfX)) {
   //     formatErr("from and to must surround");
-  //     abort();
+  //     throw "from and to must surround";
   // }
   // if (!(fromY < selfY ^ toY < selfY)) {
   //     formatErr("from and to must surround");
-  //     abort();
+  //     throw "from and to must surround";
   // }
 
   auto strictInc = [](int x, int y, int z) { return x < y && y < z; };
@@ -41,7 +41,7 @@ std::vector<Location> RoadSegment::offsetsThrough(Location from, Location to) {
 
   if (axisX(allEq) && axisY(allEq)) {
     formatErr("from -> self -> to should not stay still");
-    abort();
+    // throw "from -> self -> to should not stay still";
   }
 
   // straight right
@@ -252,5 +252,5 @@ std::vector<Location> RoadSegment::offsetsThrough(Location from, Location to) {
     return {{3, 1}, {3, 2}, {4, 3}};
 
   formatErr("unreachable");
-  abort();
+  throw "RoadSegment unreachable";
 }

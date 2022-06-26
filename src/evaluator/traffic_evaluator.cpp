@@ -22,7 +22,7 @@ bool TrafficEvaluator::canContinueToSpawn(double secondsElapsed) {
   for (auto& [comm, res] : spawns) {
     auto path = this->activeVehiclePaths.Add(Path());
     if (!VehiclePathConstructor::Construct(path, this->network, nextPathId++, {comm, res}, secondsElapsed, vehicleSecondsPerUnit)) {
-      spdlog::error("TrafficEvaluator failed to path; this should not happen");
+      spdlog::trace("TrafficEvaluator failed to path; this should not happen");
       return false;
     }
     this->pathToVisit[path] = {comm, res};
@@ -34,7 +34,7 @@ bool TrafficEvaluator::canContinueToSpawn(double secondsElapsed) {
 
   if (spawns.size() > 0) {
     if (!PathReconciler().Reconcile(this->activeVehiclePaths.Get())) {
-      spdlog::error("TrafficEvaluator failed to reconcile; this should not happen");
+      spdlog::trace("TrafficEvaluator failed to reconcile; this should not happen");
       return false;
     }
   }

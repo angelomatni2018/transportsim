@@ -33,9 +33,9 @@ const std::vector<Location> CoordOffsetWorldElement::AllOccupiedLocations() cons
 
 Building::Building(std::pair<int, int> size, Location loc) : SquareWorldElement{size, loc} {
   if (sizeX % STRUCTURE_BASE_SIZE_UNIT != 0 || sizeY % STRUCTURE_BASE_SIZE_UNIT != 0) {
-    spdlog::error("Structure (of type {}) with size {} is not a multiple of STRUCTURE_BASE_SIZE_UNIT={}", this->GetType(), to_string(size),
+    spdlog::trace("Structure (of type {}) with size {} is not a multiple of STRUCTURE_BASE_SIZE_UNIT={}", this->GetType(), to_string(size),
                   STRUCTURE_BASE_SIZE_UNIT);
-    abort();
+    throw "Building structure misaligned";
   }
 }
 

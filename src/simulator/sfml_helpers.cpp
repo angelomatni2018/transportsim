@@ -2,18 +2,21 @@
 
 using namespace world;
 
+void InputManager::NextFrame() {
+  keyTogglePrev = keyToggleNext;
+  keyToggleNext.clear();
+  mouseTogglePrev = mouseToggleNext;
+  mouseToggleNext.clear();
+}
+
 bool InputManager::IsHold(sf::Keyboard::Key key) {
   return sf::Keyboard::isKeyPressed(key);
 }
 
 bool InputManager::IsPress(sf::Keyboard::Key key) {
-  if (sf::Keyboard::isKeyPressed(key)) {
-    if (!keyToggle[key]) {
-      keyToggle[key] = true;
-      return true;
-    }
-  } else {
-    keyToggle[key] = false;
+  keyToggleNext[key] = sf::Keyboard::isKeyPressed(key);
+  if (!keyTogglePrev[key] && keyToggleNext[key]) {
+    return true;
   }
   return false;
 }
@@ -23,13 +26,9 @@ bool InputManager::IsHold(sf::Mouse::Button button) {
 }
 
 bool InputManager::IsClick(sf::Mouse::Button button) {
-  if (sf::Mouse::isButtonPressed(button)) {
-    if (!mouseToggle[button]) {
-      mouseToggle[button] = true;
-      return true;
-    }
-  } else {
-    mouseToggle[button] = false;
+  mouseToggleNext[button] = sf::Mouse::isButtonPressed(button);
+  if (!mouseTogglePrev[button] && mouseToggleNext[button]) {
+    return true;
   }
   return false;
 }

@@ -20,8 +20,9 @@ StateChange SimulationState::Simulate(const FrameData& frameData, const sf::Rend
   // if (network.Roads().size() == 0) {
   //   int starterRoadLength = 3;
   //   auto size1 = STRUCTURE_BASE_SIZE_UNIT * Location{1, 1};
+  //   auto size32 = STRUCTURE_BASE_SIZE_UNIT * Location{3, 2};
   //   auto leftBuilding = this->network.Add(ResidentialBuilding(INT32_MAX, size1, STRUCTURE_BASE_SIZE_UNIT * Location{-1, 0}));
-  //   auto rightBuilding = this->network.Add(CommercialBuilding(INT32_MAX, size1, STRUCTURE_BASE_SIZE_UNIT * Location{starterRoadLength, 0}));
+  //   auto rightBuilding = this->network.Add(CommercialBuilding(INT32_MAX, size32, STRUCTURE_BASE_SIZE_UNIT * Location{starterRoadLength, 0}));
   //   stateChange.adds.push_back(leftBuilding);
   //   stateChange.adds.push_back(rightBuilding);
   //   for (auto i = 0; i < starterRoadLength; ++i) {

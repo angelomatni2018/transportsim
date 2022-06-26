@@ -5,14 +5,14 @@ using namespace world;
 RoadCandidateNetworkGraph::RoadCandidateNetworkGraph(const Network& network) : NetworkGraph{} {
   EmptyLocationPathfinder pathfinder;
   int paths = 0;
-  for (auto& el : network.Buildings()) {
-    for (auto& otherEl : network.Buildings()) {
+  for (auto& el : network.Elements()) {
+    for (auto& otherEl : network.Elements()) {
       if (el == otherEl)
         continue;
       if (Edge(el, otherEl) != nullptr)
         continue;
       auto candidatePath = pathfinder.Solve(network, el->PrimaryLocation(), otherEl->PrimaryLocation());
-      // We require buildings to have at least one road in between them
+      // TODO: Require pathfinder to have at least one road in between buildings; then this condition would be .size() > 0
       if (candidatePath.size() > 2) {
         AddUndirected(el, otherEl, candidatePath);
         paths++;
@@ -23,5 +23,5 @@ RoadCandidateNetworkGraph::RoadCandidateNetworkGraph(const Network& network) : N
       }
     }
   }
-  spdlog::trace("{} paths found for {} buildings", paths, network.Buildings().size());
+  // spdlog::trace("{} paths found for {} buildings", paths, network.Elements().size());
 }

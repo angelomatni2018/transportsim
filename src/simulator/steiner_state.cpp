@@ -9,12 +9,13 @@ StateChange SteinerState::Simulate(const FrameData& frameData, const sf::RenderW
   auto spawned = this->structureDrawer.TrackMouseToSpawn(frameData, window, inputManager, inputNetwork);
   if (spawned.size() > 0) {
     if (this->connectedNetwork != nullptr) {
-      for (auto& [loc, el] : this->connectedNetwork->SpatialMap()) {
+      for (auto el : this->connectedNetwork->Elements()) {
         stateChange.removes.push_back(el);
       }
     }
     this->connectedNetwork = SteinerPointSearchByClustering::ConnectStructures(inputNetwork);
-    for (auto& [loc, el] : this->connectedNetwork->SpatialMap()) {
+    // this->connectedNetwork = SpanningTreeSolver::ConnectStructures(inputNetwork);
+    for (auto el : this->connectedNetwork->Elements()) {
       stateChange.adds.push_back(el);
     }
   }

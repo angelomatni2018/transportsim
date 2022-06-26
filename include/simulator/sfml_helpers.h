@@ -7,8 +7,10 @@ namespace world {
 
 class InputManager {
 public:
-  std::unordered_map<sf::Keyboard::Key, bool> keyToggle;
-  std::unordered_map<sf::Mouse::Button, bool> mouseToggle;
+  std::unordered_map<sf::Keyboard::Key, bool> keyTogglePrev, keyToggleNext;
+  std::unordered_map<sf::Mouse::Button, bool> mouseTogglePrev, mouseToggleNext;
+
+  void NextFrame();
 
   bool IsPress(sf::Keyboard::Key key);
   bool IsHold(sf::Keyboard::Key key);
@@ -17,9 +19,14 @@ public:
   bool IsHold(sf::Mouse::Button button);
 };
 
-template <class T>
-Location VectorToLocation(sf::Vector2<T> loc) {
+template <class T, class U>
+std::pair<U, U> VectorToPair(sf::Vector2<T> loc) {
   return std::make_pair(round(loc.x), round(loc.y));
+}
+
+template <class T, class U>
+sf::Vector2<T> PairToVector(std::pair<U, U> loc) {
+  return sf::Vector2<T>(loc.first, loc.second);
 }
 
 template <class T>

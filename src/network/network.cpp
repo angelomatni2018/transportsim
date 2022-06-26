@@ -21,24 +21,31 @@ const WorldElement* Network::StructureAt(Location loc) const {
   return spatialMap.at(Network::AlignLocation(loc));
 }
 
-const std::unordered_map<Location, WorldElement*, pair_hash>& Network::SpatialMap() const {
-  return this->spatialMap;
+const std::vector<WorldElement*>& Network::Elements() const {
+  return this->elementPool.Get();
 }
 
 const int Network::Size() const {
-  return this->spatialMap.size();
+  return this->elementPool.Get().size();
 }
 
 void Network::addToSpatialMap(WorldElement* element) {
   auto alignedLoc = element->PrimaryLocation();
   if (alignedLoc.first % STRUCTURE_BASE_SIZE_UNIT != 0 || alignedLoc.second % STRUCTURE_BASE_SIZE_UNIT != 0) {
-    spdlog::error("Structure (of type {}) with primary location {} is not a multiple of STRUCTURE_BASE_SIZE_UNIT={}", element->GetType(),
+    spdlog::trace("Structure (of type {}) with primary location {} is not a multiple of STRUCTURE_BASE_SIZE_UNIT={}", element->GetType(),
                   to_string(alignedLoc), STRUCTURE_BASE_SIZE_UNIT);
-    abort();
+    throw "Network structure misaligned";
   }
-  this->spatialMap[alignedLoc] = element;
-  // spdlog::trace("Network: spatial map entry at {} of type {}", to_string(element->PrimaryLocation()), element->GetType());
-  this->expandBounds(alignedLoc);
+
+  for (auto loc : element->AllOccupiedLocations()) {
+    if (this->spatialMap.find(loc) != this->spatialMap.end()) {
+      spdlog::trace("Cannot place two entities on the same location {} on the network\n", to_string(loc));
+      throw "Network structure location overlap";
+    }
+    this->spatialMap[loc] = element;
+    // spdlog::trace("Network: spatial map entry at {} of type {}", to_string(element->PrimaryLocation()), element->GetType());
+    this->expandBounds(loc);
+  }
 }
 
 std::vector<Building*> const& Network::Buildings() const {
@@ -51,20 +58,12 @@ std::vector<Roadway*> const& Network::Roads() const {
 
 Building* Network::addBuilding(Building* building) {
   this->buildings.push_back(building);
-  if (this->spatialMap.find(building->PrimaryLocation()) != this->spatialMap.end()) {
-    spdlog::error("Cannot place two entities on the same location on the network\n");
-    abort();
-  }
   this->addToSpatialMap(building);
   return building;
 }
 
 Roadway* Network::addRoadway(Roadway* roadway) {
   this->roads.push_back(roadway);
-  if (this->spatialMap.find(roadway->PrimaryLocation()) != this->spatialMap.end()) {
-    spdlog::error("Cannot place two entities on the same location on the network\n");
-    abort();
-  }
   this->addToSpatialMap(roadway);
   return roadway;
 }
@@ -77,11 +76,12 @@ WorldElement* Network::AddCopyOf(const WorldElement* elToCopy) {
   if (el->IsType(Roadway::Type)) {
     return addRoadway(static_cast<Roadway*>(el));
   }
-  spdlog::error("Network does not support WorldElement of type {}", el->GetType());
-  abort();
+  spdlog::trace("Network does not support WorldElement of type {}", el->GetType());
+  throw "Network unsupported WorldElement type";
 }
 
 void Network::Clear() {
+  elementPool = PtrVec<WorldElement>();
   spatialMap.clear();
   buildings.clear();
   roads.clear();

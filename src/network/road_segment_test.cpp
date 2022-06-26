@@ -56,10 +56,10 @@ bool SmoothConnectivity() {
         offsets23.insert(offsets23.end(), offs123.begin(), offs123.end());
         offsets23.insert(offsets23.end(), offs234.begin(), offs234.end());
         if (!isSmoothAndConnected(path23)) {
-          spdlog::error("RoadSegmentTest: bad path ({}) -> ({}) -> ({}) -> ({})", to_string(seg1.PrimaryLocation()),
+          spdlog::trace("RoadSegmentTest: bad path ({}) -> ({}) -> ({}) -> ({})", to_string(seg1.PrimaryLocation()),
                         to_string(seg2.PrimaryLocation()), to_string(seg3.PrimaryLocation()), to_string(seg4.PrimaryLocation()));
           for (int i = 0; i < path23.size(); ++i) {
-            spdlog::error("{}\t{}", to_string(path23[i]), to_string(offsets23[i]));
+            spdlog::trace("{}\t{}", to_string(path23[i]), to_string(offsets23[i]));
           }
           return false;
         } else {

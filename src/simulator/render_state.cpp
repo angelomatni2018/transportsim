@@ -7,7 +7,7 @@ using namespace world;
 RenderState::RenderState() {
   // Load THE ONLY sprite we have :(
   if (!squareTexture.loadFromFile("assets/square.png"))
-    abort();
+    throw "Failed to load square.png";
 }
 
 void draw(sf::RenderWindow& window, sf::Sprite* sprite) {
@@ -20,7 +20,6 @@ void draw(sf::RenderWindow& window, sf::Sprite* sprite) {
   */
   auto scaledYDimSizeOfSprite = sprite->getScale().y * sprite->getTexture()->getSize().y;
   sprite->setPosition(sf::Vector2f(originalPos.x, GRID_SIZE - (originalPos.y + scaledYDimSizeOfSprite)));
-  // spdlog::trace("drawing: {}", to_string(VectorToLocation(sprite->getPosition())));
   window.draw(*sprite);
   sprite->setPosition(originalPos);
 }
@@ -105,7 +104,13 @@ void RenderState::Render(sf::RenderWindow& window, const FrameData& frameData, c
   for (auto element : stateChange.adds) {
     sf::Sprite* sprite = sPool.Add(sf::Sprite(this->squareTexture));
     auto [x, y] = element->PrimaryLocation();
+
     sprite->setScale(Vector2(SQUARE_SCALE_FACTOR));
+    if (element->IsType(Building::Type)) {
+      auto structureDimLengths = SQUARE_SCALE_FACTOR * Point{static_cast<Building*>(element)->Size()} / STRUCTURE_BASE_SIZE_UNIT;
+      sprite->setScale(PairToVector<float, float>(structureDimLengths));
+    }
+
     sprite->setPosition(sf::Vector2f(centerAndAlignStructureCoord(x), centerAndAlignStructureCoord(y)));
     if (element->IsType(Roadway::Type)) {
       sprite->setColor(sf::Color(100, 100, 100));

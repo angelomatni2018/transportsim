@@ -28,8 +28,8 @@ void MinimumSpanningTree::prim(const NetworkGraph& graph) {
   }
   while (mstNodes.size() < numNodes) {
     if (queue.empty()) {
-      spdlog::error("MinimumSpanningTree: queue empty but MST not found; is graph connected?\n");
-      abort();
+      spdlog::trace("MinimumSpanningTree: queue empty but MST not found; is graph connected?\n");
+      throw "MinimumSpanningTree: queue empty prematurely";
     }
 
     auto minEdge = queue.top();
@@ -54,7 +54,7 @@ void MinimumSpanningTree::prim(const NetworkGraph& graph) {
   }
 
   if (mstNodes.size() != numNodes) {
-    spdlog::error("MinimumSpanningTree: {} mst nodes versus {} graph nodes; is graph connected?\n", mstNodes.size(), numNodes);
-    abort();
+    spdlog::trace("MinimumSpanningTree: {} mst nodes versus {} graph nodes; is graph connected?\n", mstNodes.size(), numNodes);
+    throw "MinimumSpanningTree: graph nodes missing from MST";
   }
 }

@@ -27,18 +27,26 @@ std::vector<WorldElement*> StructureDrawer::TrackMouseToSpawn(const FrameData& f
       sf::Vector2f((-GRID_CENTER + GRID_SIZE * mousePosFraction.x) * aspectRatio, -GRID_CENTER + (GRID_SIZE * mousePosFraction.y));
   auto currentLocation =
       STRUCTURE_BASE_SIZE_UNIT * Location{floor(mousePosCentered.x / SQUARE_NUM_PIXELS), floor(mousePosCentered.y / SQUARE_NUM_PIXELS)};
-  spdlog::trace("Mouse: {} Square: {}", to_string(VectorToLocation(mousePos)), to_string(currentLocation));
-  spdlog::trace("Window: {},{}", windowWidth, windowHeight);
+  // spdlog::trace("Mouse: {} Square: {}", to_string(VectorToPair<int, int>(mousePos)), to_string(currentLocation));
+  // spdlog::trace("Window: {},{}", windowWidth, windowHeight);
 
-  if (!network.HasStructureAt(currentLocation)) {
-    auto structureSize = std::make_pair(STRUCTURE_BASE_SIZE_UNIT, STRUCTURE_BASE_SIZE_UNIT);
-    if (inputManager.IsHold(sf::Keyboard::Num1)) {
-      auto spawnElem = network.Add(CommercialBuilding(INT32_MAX, structureSize, currentLocation));
-      return {spawnElem};
-    } else if (inputManager.IsHold(sf::Keyboard::Num2)) {
-      auto spawnElem = network.Add(ResidentialBuilding(INT32_MAX, structureSize, currentLocation));
-      return {spawnElem};
+  auto isComm = inputManager.IsHold(sf::Keyboard::Num1);
+  auto isRes = inputManager.IsHold(sf::Keyboard::Num2);
+  if (isComm || isRes) {
+    auto buildingDims = STRUCTURE_BASE_SIZE_UNIT * (isComm ? Location{3, 2} : Location{1, 1});
+    for (auto loc : Building(buildingDims, currentLocation).AllOccupiedLocations()) {
+      if (network.HasStructureAt(loc)) {
+        return {};
+      }
     }
+
+    Building* spawnElem;
+    if (isComm) {
+      spawnElem = network.Add(CommercialBuilding(INT32_MAX, buildingDims, currentLocation));
+    } else {
+      spawnElem = network.Add(ResidentialBuilding(INT32_MAX, buildingDims, currentLocation));
+    }
+    return {spawnElem};
   }
 
   if (prevLocation == NO_LOCATION) {

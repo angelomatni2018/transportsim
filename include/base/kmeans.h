@@ -2,6 +2,7 @@
 #define KMEANS
 
 #include "base/spatial.h"
+#include <queue>
 
 namespace world {
 
@@ -11,6 +12,7 @@ class KMeans {
 private:
   int numClusters;
   std::unordered_map<Location, int, pair_hash> locToCluster;
+  std::priority_queue<std::pair<float, Location>> remoteLocations;
   PtrSet<Cluster> clusters;
 
   struct Grouping {
@@ -19,14 +21,18 @@ private:
   };
   Grouping grouping;
 
-  void computeGroupingFromClusterMapping(Grouping& g);
+  void computeGroupingFromClusterMapping(int iteration);
 
   bool assignPointsToClosestCluster();
 
   static constexpr int MAX_ITERATIONS = 100000;
 
+  void verifyInputs(int numPoints);
+  void solve();
+
 public:
   KMeans(const std::unordered_set<Location, pair_hash> locs, int c);
+  KMeans(const std::vector<Location> locs, int c);
 
   const std::unordered_set<Cluster*>& Get();
 };
