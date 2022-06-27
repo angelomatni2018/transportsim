@@ -15,6 +15,7 @@ bool InputManager::IsHold(sf::Keyboard::Key key) {
 
 bool InputManager::IsPress(sf::Keyboard::Key key) {
   keyToggleNext[key] = sf::Keyboard::isKeyPressed(key);
+  // spdlog::error("Key {} : {} then {}", key, keyTogglePrev[key], keyToggleNext[key]);
   if (!keyTogglePrev[key] && keyToggleNext[key]) {
     return true;
   }

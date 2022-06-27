@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "base/agglomerative_clustering.h"
 #include "base/geometric_median.h"
 #include "base/kmeans.h"
 #include "network/min_spanning_tree.h"

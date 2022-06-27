@@ -1,12 +1,11 @@
 #ifndef KMEANS
 #define KMEANS
 
+#include "base/cluster.h"
 #include "base/spatial.h"
 #include <queue>
 
 namespace world {
-
-struct Cluster;
 
 class KMeans {
 private:
@@ -35,14 +34,6 @@ public:
   KMeans(const std::vector<Location> locs, int c);
 
   const std::unordered_set<Cluster*>& Get();
-};
-
-struct Cluster {
-  std::unordered_set<Location, pair_hash> members;
-  Point centroid;
-
-  Cluster() {}
-  Cluster(std::unordered_set<Location, pair_hash> members, Point centroid) : members{members}, centroid{centroid} {}
 };
 
 }; // namespace world

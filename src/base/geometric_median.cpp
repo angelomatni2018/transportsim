@@ -24,7 +24,7 @@ Point GeometricMedian::Median(std::unordered_set<Point*>& cluster, float thresho
 }
 
 void GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(std::unordered_set<PointToPosition*>& pointsToPosition, float threshold) {
-  for (auto& pointToPosition : pointsToPosition) {
+  for (auto pointToPosition : pointsToPosition) {
     if (pointToPosition->clusterPoints.size() == 0) {
       spdlog::trace("GeometricMedian: No empty clusters allowed");
       throw "GeometricMedian: No empty clusters allowed";
@@ -39,10 +39,12 @@ void GeometricMedian::PositionAtMediansToMinimizeSumOfDistances(std::unordered_s
     maxAdjustment = 0.0;
     for (auto pointToPosition : pointsToPosition) {
       pointToPosition->proposedAdjustedPosition = weiszfeldStep(*pointToPosition->pointToPositionAtMedian, pointToPosition->clusterPoints, threshold);
+
       // for (auto& p : pointToPosition->clusterPoints) {
-      // spdlog::trace("Cluster point {}", to_string(*p));
+      //   spdlog::trace("Cluster point {}", to_string(*p));
       // }
       // spdlog::trace("Proposed {}", to_string(pointToPosition->proposedAdjustedPosition));
+
       auto adjustment = euclidianDistance(pointToPosition->proposedAdjustedPosition, *pointToPosition->pointToPositionAtMedian);
       if (maxAdjustment < adjustment) {
         maxAdjustment = adjustment;

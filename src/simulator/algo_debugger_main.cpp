@@ -92,11 +92,11 @@ int main() {
       }
     } else {
       scenes[0]();
-      inputManager.NextFrame();
       frameData.NextFrame();
     }
     window.display();
 
+    inputManager.NextFrame();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
